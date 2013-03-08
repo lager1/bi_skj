@@ -66,8 +66,10 @@
 #2
 
 
+# je mozne do matematickeho vyhodnoceni zaroven dat znak promenne s specifikovat tak o co se jedna? -> viz prednasky
 
 
+# ma cenu definovat ruzne navratove kody pro ruzne chyby?
 
 
 
@@ -86,8 +88,10 @@ function error()
 {
   for i in "$@"
   do
-    echo "$i" >&2
+    echo "ERROR: $i" >&2
   done
+
+  echo "exitting"
 
   exit 1;
 }
@@ -113,80 +117,77 @@ function readParams()
          # ma smysl tu nejak testovat hodnotu v OPTARG, pokud ano, tak jak?
          
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -t"
-         SWITCHES[$(($J++))]="t"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="t"	# zapamatujeme si zpracovany prepinac
 		 TIMEFORM="$OPTARG";; # ok
 
       X) # XMAX
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -X"
-         SWITCHES[$(($J++))]="X"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="X"	# zapamatujeme si zpracovany prepinac
 		 XMAX="$OPTARG";; # ok
       
       x) # XMIN 
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -x"
-         SWITCHES[$(($J++))]="x"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="x"	# zapamatujeme si zpracovany prepinac
 		 XMIN="$OPTARG";; # ok
 
       Y) # YMAX
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -Y"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # ani jedna z definovanych hodnot
 		   error "spatny parametr prepinace Y"; }
-         SWITCHES[$(($J++))]="Y"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="Y"	# zapamatujeme si zpracovany prepinac
 		 YMAX="$OPTARG";; 	# ok
 
       y) # YMIN
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -y"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # ani jedna z definovanych hodnot
 		   error "spatny parametr prepinace y"; }
-		 #  echo "spatny parametr prepinace y"; exit 1; }
-         SWITCHES[$(($J++))]="y"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="y"	# zapamatujeme si zpracovany prepinac
 		 YMIN="$OPTARG";;	# ok
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -S"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
 		   error "spatny parametr prepinace S"; }
-		 #  echo "spatny parametr prepinace S"; exit 1; }
-         SWITCHES[$(($J++))]="S"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="S"	# zapamatujeme si zpracovany prepinac
 		 SPEED="$OPTARG";;	# ok
 
       T) # DURATION
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -T"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
 		   error "spatny parametr prepinace T"; }
-		 #  echo "spatny parametr prepinace T"; exit 1; }
-         SWITCHES[$(($J++))]="T"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="T"	# zapamatujeme si zpracovany prepinac
 		 DURATION="$OPTARG";;	# ok
 
       l) # LEGEND		 
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -l"
-         SWITCHES[$(($J++))]="l"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="l"	# zapamatujeme si zpracovany prepinac
 		 LEGEND="$OPTARG";; #text, neni potreba kontrola
 
       g) # GNUPLOTPARAMS
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -g"
-		 GNUPLOTPARAMS[$A]="$OPTARG"	# ulozime si hodnotu
-		 ((A++))
-         SWITCHES[$(($J++))]="g"	# zapamatujeme si zpracovany prepinac
+		 GNUPLOTPARAMS[$((A++))]="$OPTARG"	# ulozime si hodnotu
+         SWITCHES[$((J++))]="g";;	# zapamatujeme si zpracovany prepinac
       
       e) # EFFECTPARAMS
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -e"
 		 OPTARG=`echo "$OPTARG" | tr ":" " "`	# zmena oddelovace na mezeru, abychom mohli iterovat
 		 for i in $OPTARG
 		 do
-		   ! [[ $i =~ ^bgcolor=.*$ || $i =~ ^changebgcolor$ || $i =~ ^changespeed=[1-5]$ ]] && { # kontrola, zda ma promenna spravny tvar
+		   ! [[ "$i" =~ ^bgcolor=.*$ || "$i" =~ ^changebgcolor$ || "$i" =~ ^changespeed=[1-5]$ ]] && { # kontrola, zda ma promenna spravny tvar
              error "spatny parametr prepinace e"; }
-		     #echo "spatna hodnota parametru e"; exit 1; }
-		   EFFECTPARAMS[$B]=$i	# ok, uloz do pole
-		   ((B++))
+		   EFFECTPARAMS[$((B++))]="$i"	# ok, uloz do pole
 	     done
-         SWITCHES[$(($J++))]="e"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="e";;	# zapamatujeme si zpracovany prepinac
 		 
       f) # CONFIG
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -f"
-		 ! [ -e $OPTARG ] && error "zadany konfiguracni soubor $OPTARG neexistuje"
-		 ! [ -f $OPTARG ] && error "zadany konfiguracni soubor $OPTARG neni bezny soubor"
-		 ! [ -r $OPTARG ] && error "zadany konfiguracni soubor $OPTARG neni mozne cist"
+		 ! [ -e $OPTARG ] && error "provided configuration file \"$OPTARG\" does not exist"
+		 ! [ -f $OPTARG ] && error "provided configuration file \"$OPTARG\" is not a regular file"
+		 ! [ -r $OPTARG ] && error "provided configuration file \"$OPTARG\" cannot be read"
 
+		 #! [ -e $OPTARG ] && error "zadany konfiguracni soubor \"$OPTARG\" neexistuje"
+		 #! [ -f $OPTARG ] && error "zadany konfiguracni soubor \"$OPTARG\" neni bezny soubor"
+		 #! [ -r $OPTARG ] && error "zadany konfiguracni soubor \"$OPTARG\" neni mozne cist"
 
          # tady jeste muze nastat situace, ze soubor lze cist -> ale cesta je takova, ze ho nelze napr ani listovat
          # => /root/.bashrc
@@ -194,23 +195,23 @@ function readParams()
 		 #! [ -e $OPTARG ] && { echo "zadany konfiguracni soubor $OPTARG neexistuje"; exit 1; }
 		 #! [ -f $OPTARG ] && { echo "zadany konfiguracni soubor $OPTARG neni bezny soubor"; exit 1; }
 		 #! [ -r $OPTARG ] && { echo "zadany konfiguracni soubor $OPTARG neni mozne cist"; exit 1; }
-         SWITCHES[$(($J++))]="f"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="f"	# zapamatujeme si zpracovany prepinac
 		 CONFIG="$OPTARG";;	# ok
 
       n) # NAME
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -n"
-         SWITCHES[$(($J++))]="n"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="n"	# zapamatujeme si zpracovany prepinac
 		 NAME="$OPTARG";;	# kontrola neni nutna
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -F"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # neciselna hodnota, mel by byt int/float
-		   echo "spatny parametr prepinace F"; exit 1; }
-         SWITCHES[$(($J++))]="F"	# zapamatujeme si zpracovany prepinac
+           error "spatny parametr prepinace F"; }
+         SWITCHES[$((J++))]="F"	# zapamatujeme si zpracovany prepinac
 		 FPS="$OPTARG";;	# kontrola neni nutna
 
       v) # VERBOSE
-         SWITCHES[$(($J++))]="v"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="v"	# zapamatujeme si zpracovany prepinac
          VERBOSE=1;;
 
      \?) echo "pripustne prepinace: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# prepinac, ktery neni definovan
@@ -225,6 +226,30 @@ function readParams()
 #-------------------------------------------------------------------------------
 
 
+#-------------------------------------------------------------------------------
+# funkce pro kontrolu datovych souboru
+#	1) "$@" - vsechny zbyle argumenty, ktere byly zadany pri spusteni - datove soubory
+# probiha pouze kontrola, zda soubory existuji, jsou citelne
+# mohlo by se zkoumat zda na sebe i napr nejak navazuji ?
+#-------------------------------------------------------------------------------
+function checkFiles()
+{
+  for i in "$1"
+  do
+    [[ -z "$1" ]] && error "no data files were provided"
+    ! [[ -e "$i" ]] && error "provided data file \"$i\" does not exist"
+    ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
+    ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
+
+
+    #[[ -z "$1" ]] && error "nebyly zadany zadne datove soubory"
+    #! [[ -e "$i" ]] && error "zadany datovy soubor \"$i\" neexistuje"
+    #! [[ -f "$i" ]] && error "zadany datovy soubor \"$i\" neni bezny soubor"
+    #! [[ -r "$i" ]] && error "zadany datovy soubor \"$i\" neni mozne cist"
+
+
+  done
+}
 
 
 
@@ -490,7 +515,8 @@ function readConfig()
 #-------------------------------------------------------------------------------
   readParams "$@"
   shift `expr $OPTIND - 1`	# posun na prikazove radce
-
+  
+  checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
 
 
 
