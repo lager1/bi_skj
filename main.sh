@@ -299,9 +299,11 @@ function readParams()
 function checkFiles()
 {
   local data_idx=0      # index for data files field
+
+  [[ -z "$1" ]] && error "no data files were provided"
+
   for i in "$@"
   do
-    [[ -z "$1" ]] && error "no data files were provided"
     ! [[ -e "$i" ]] && error "provided data file \"$i\" does not exist"
     ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
     ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
