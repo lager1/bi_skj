@@ -79,12 +79,14 @@
 
 
 #-------------------------------------------------------------------------------
-# function for printing information about script progress
+# function for reporting information about script progress
 # parameters:
 #   function takes 
-# all parameters ale printed to the standart output
+# all of the parameters ale printed to the standart output
 #-------------------------------------------------------------------------------
 
+
+# funkce musi byt navrzena trochu jinak, aby vystup daval smysl
 
 #-------------------------------------------------------------------------------
 # funkce pro vypisovani informaci o prubehu skriptu
@@ -94,12 +96,13 @@
 #-------------------------------------------------------------------------------
 function verbose()
 {
+  echo -n "VERBOSE: "
+
   for i in "$@"
   do
-    echo "VERBOSE: $i"
+    echo -n "$i "
   done
-
-  exit 1;
+  echo ""
 }
 #-------------------------------------------------------------------------------
 
@@ -114,11 +117,11 @@ function verbose()
 
 
 #-------------------------------------------------------------------------------
-# funkce pro vypisovani chyb
-# parametry:
-#   funkce bere libovolny pocet parametru
-# vsechny parametry jsou vypsany na standartni chybovy vystup
-# funkce nasledne ukoncuje cely skript pomoci exit 1
+# function for reporting errors
+# parameters:
+#   function takes 
+# all of the parameters ale printed to the standart error output
+# fuction  exits the whole script with exit 1
 #-------------------------------------------------------------------------------
 
 
@@ -140,6 +143,17 @@ function error()
 
   exit 1;
 }
+
+
+#-------------------------------------------------------------------------------
+# function for reading and evaluation of parameters
+# parameters:
+#	1) "$@" - 
+# vysledek zpracovani je ulozen v globalnich promennych
+# whenn an error occurs it is sent to the error function
+#-------------------------------------------------------------------------------
+
+
 
 #-------------------------------------------------------------------------------
 # funkce pro cteni a vyhodnoceni paramemetru
@@ -554,12 +568,32 @@ function readConfig()
 # main
 #-------------------------------------------------------------------------------
   # hlavni konfiguracni promenne, globalni pro cely soubor
-
+  CONFIG=0
+  TIMEFORM="[%Y-%m-%d %H:%M:%S]"
   XMAX="max"
   XMIN="min"
+  YMAX="auto"
+  YMIN="auto"
+  SPEED=1
+  DURATION=0
+  FPS=25
+  typeset -a GNUPLOTPARAMS 	# pole
+  typeset -a EFECTPARAMS	# pole
+  ERRORS="true"				# true
+  LEGEND=0
+  NAME=0
+  typeset -a PREPINACE      # pole, zapiseme jake prepinace jsme zpracovali
+  typeset -a DATA			# pole obsahujici soubory s daty
+  typeset -a TEMPFILES		# docasne soubory
+  GNUPLOTDEF=0
+  FRAMES=0					# celkovy pocet generovanych snimku
+  RECORDS=0					# pocet zaznamu v souboru
+  TIMEREGEX=0
+  MULTIPLOT="false"
+  CHANGESPEED=1				# rychlost zmeny barvy pozadi
+  DIRECTION=0				# "smer", kterym menime barvu pozadi
+  typeset -a DATA			# pole obsahujici soubory s daty
   VERBOSE=0
-
-
 
 
 #-------------------------------------------------------------------------------
@@ -567,7 +601,6 @@ function readConfig()
   shift `expr $OPTIND - 1`	# posun na prikazove radce
   [[ "$VERBOSE" == 1 ]] && verbose "zpracovane prepinace ${SWITCHES[@]}"
   checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
-
 
 # pokud je definovan verbose, tak vypsat vsechny zpracovane prepinace a datove soubory
 
