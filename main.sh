@@ -299,22 +299,17 @@ function readParams()
 function checkFiles()
 {
   local data_idx=0      # index for data files field
-  for i in "$1"
+  for i in "$@"
   do
     [[ -z "$1" ]] && error "no data files were provided"
     ! [[ -e "$i" ]] && error "provided data file \"$i\" does not exist"
     ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
     ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
 
-    DATA[]
+    DATA[$((data_idx++))]="$1"  # provided data file is ok
 
   done
 }
-
-
-# tady jeste rovnou soubory ukladat do nejake promenne, pokud jsou validni
-
-
 
 
 
@@ -582,7 +577,7 @@ function readConfig()
   ERRORS="true"				# true
   LEGEND=0
   NAME=0
-  typeset -a PREPINACE      # pole, zapiseme jake prepinace jsme zpracovali
+  typeset -a SWITCHES       # pole, zapiseme jake prepinace jsme zpracovali
   typeset -a DATA			# pole obsahujici soubory s daty
   typeset -a TEMPFILES		# docasne soubory
   GNUPLOTDEF=0
@@ -599,8 +594,9 @@ function readConfig()
   readParams "$@"
   shift `expr $OPTIND - 1`	# posun na prikazove radce
   [[ "$VERBOSE" == 1 ]] && verbose "zpracovane prepinace ${SWITCHES[@]}"
+  
   checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
-  [[ "$VERBOSE" == 1 ]] && verbose "data files ${SWITCHES[@]}"
+  [[ "$VERBOSE" == 1 ]] && verbose "data files ${DATA[@]}"
 
 # pokud je definovan verbose, tak vypsat vsechny zpracovane prepinace a datove soubory
 
