@@ -109,13 +109,6 @@ function verbose()
 
 
 
-
-
-
-
-
-
-
 #-------------------------------------------------------------------------------
 # function for reporting errors
 # parameters:
@@ -286,6 +279,17 @@ function readParams()
 #-------------------------------------------------------------------------------
 
 
+
+#-------------------------------------------------------------------------------
+# function for checking data files
+#	1) "$@" - all remaining arguments, which vere provided on execution - data files
+# function only checks if the files exist and if they are readable
+# mohlo by se zkoumat zda na sebe i napr nejak navazuji ?
+#-------------------------------------------------------------------------------
+
+
+
+
 #-------------------------------------------------------------------------------
 # funkce pro kontrolu datovych souboru
 #	1) "$@" - vsechny zbyle argumenty, ktere byly zadany pri spusteni - datove soubory
@@ -294,6 +298,7 @@ function readParams()
 #-------------------------------------------------------------------------------
 function checkFiles()
 {
+  local data_idx=0      # index for data files field
   for i in "$1"
   do
     [[ -z "$1" ]] && error "no data files were provided"
@@ -301,12 +306,7 @@ function checkFiles()
     ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
     ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
 
-
-    #[[ -z "$1" ]] && error "nebyly zadany zadne datove soubory"
-    #! [[ -e "$i" ]] && error "zadany datovy soubor \"$i\" neexistuje"
-    #! [[ -f "$i" ]] && error "zadany datovy soubor \"$i\" neni bezny soubor"
-    #! [[ -r "$i" ]] && error "zadany datovy soubor \"$i\" neni mozne cist"
-
+    DATA[]
 
   done
 }
@@ -567,7 +567,7 @@ function readConfig()
 #-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
-  # hlavni konfiguracni promenne, globalni pro cely soubor
+  # main configuration variables, global for whole file
   CONFIG=0
   TIMEFORM="[%Y-%m-%d %H:%M:%S]"
   XMAX="max"
@@ -592,7 +592,6 @@ function readConfig()
   MULTIPLOT="false"
   CHANGESPEED=1				# rychlost zmeny barvy pozadi
   DIRECTION=0				# "smer", kterym menime barvu pozadi
-  typeset -a DATA			# pole obsahujici soubory s daty
   VERBOSE=0
 
 
@@ -601,10 +600,10 @@ function readConfig()
   shift `expr $OPTIND - 1`	# posun na prikazove radce
   [[ "$VERBOSE" == 1 ]] && verbose "zpracovane prepinace ${SWITCHES[@]}"
   checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
+  [[ "$VERBOSE" == 1 ]] && verbose "data files ${SWITCHES[@]}"
 
 # pokud je definovan verbose, tak vypsat vsechny zpracovane prepinace a datove soubory
 
 
-  echo "${SWITCHES[@]}"
 
 
