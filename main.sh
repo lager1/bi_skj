@@ -3,14 +3,12 @@
 
 #
 
-# ------------------------------------------------ >>>>> napsat spravne hlavicku
-
-# semester work predmetu BI-SKJ, FIT CVUT, 2013, summer semester
+# semester work from subject BI-SKJ, FIT CVUT, 2013, summer semester
 #
 # This script generates animation based on provided data files,
 # additionaly its behavior can be affected by switches or by configuration file.
 # Its possible to use both options together, if switch and corresponding
-# configuration dicertive are used, then switch is preffered.
+# configuration directive are used, then switch is preffered.
 #
 #
 
@@ -44,7 +42,7 @@
 #
 #   funkci na cteni parametru by mohla zaroven koukat na datove soubory
 #
-#
+#   muze byt vice konfiguracnich souboru najednou?
 #
 #
 #
@@ -75,6 +73,53 @@
 
 
 
+
+
+
+
+
+#-------------------------------------------------------------------------------
+# function for printing information about script progress
+# parameters:
+#   function takes 
+# all parameters ale printed to the standart output
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+# funkce pro vypisovani informaci o prubehu skriptu
+# parametry:
+#   funkce bere libovolny pocet parametru
+# vsechny parametry jsou vypsany na standartni vystup
+#-------------------------------------------------------------------------------
+function verbose()
+{
+  for i in "$@"
+  do
+    echo "VERBOSE: $i"
+  done
+
+  exit 1;
+}
+#-------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+# funkce pro vypisovani chyb
+# parametry:
+#   funkce bere libovolny pocet parametru
+# vsechny parametry jsou vypsany na standartni chybovy vystup
+# funkce nasledne ukoncuje cely skript pomoci exit 1
+#-------------------------------------------------------------------------------
 
 
 #-------------------------------------------------------------------------------
@@ -116,60 +161,60 @@ function readParams()
       t) # TIMEFORM
          # ma smysl tu nejak testovat hodnotu v OPTARG, pokud ano, tak jak?
          
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -t"
+		 [ -z "$OPTARG" ] && error "the value of the switch -t was not provided"
          SWITCHES[$((J++))]="t"	# zapamatujeme si zpracovany prepinac
 		 TIMEFORM="$OPTARG";; # ok
 
       X) # XMAX
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -X"
+		 [ -z "$OPTARG" ] && error "the value of the switch -X was not provided"
          SWITCHES[$((J++))]="X"	# zapamatujeme si zpracovany prepinac
 		 XMAX="$OPTARG";; # ok
       
       x) # XMIN 
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -x"
+		 [ -z "$OPTARG" ] && error "the value of the switch -x was not provided"
          SWITCHES[$((J++))]="x"	# zapamatujeme si zpracovany prepinac
 		 XMIN="$OPTARG";; # ok
 
       Y) # YMAX
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -Y"
+		 [ -z "$OPTARG" ] && error "the value of the switch -Y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # ani jedna z definovanych hodnot
 		   error "spatny parametr prepinace Y"; }
          SWITCHES[$((J++))]="Y"	# zapamatujeme si zpracovany prepinac
 		 YMAX="$OPTARG";; 	# ok
 
       y) # YMIN
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -y"
+		 [ -z "$OPTARG" ] && error "the value of the switch -y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # ani jedna z definovanych hodnot
 		   error "spatny parametr prepinace y"; }
          SWITCHES[$((J++))]="y"	# zapamatujeme si zpracovany prepinac
 		 YMIN="$OPTARG";;	# ok
 
       S) # SPEED
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -S"
+		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
 		   error "spatny parametr prepinace S"; }
          SWITCHES[$((J++))]="S"	# zapamatujeme si zpracovany prepinac
 		 SPEED="$OPTARG";;	# ok
 
       T) # DURATION
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -T"
+		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
 		   error "spatny parametr prepinace T"; }
          SWITCHES[$((J++))]="T"	# zapamatujeme si zpracovany prepinac
 		 DURATION="$OPTARG";;	# ok
 
       l) # LEGEND		 
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -l"
+		 [ -z "$OPTARG" ] && error "the value of the switch -l was not provided"
          SWITCHES[$((J++))]="l"	# zapamatujeme si zpracovany prepinac
 		 LEGEND="$OPTARG";; #text, neni potreba kontrola
 
       g) # GNUPLOTPARAMS
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -g"
+		 [ -z "$OPTARG" ] && error "the value of the switch -g was not provided"
 		 GNUPLOTPARAMS[$((A++))]="$OPTARG"	# ulozime si hodnotu
          SWITCHES[$((J++))]="g";;	# zapamatujeme si zpracovany prepinac
       
       e) # EFFECTPARAMS
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -e"
+		 [ -z "$OPTARG" ] && error "the value of the switch -e was not provided"
 		 OPTARG=`echo "$OPTARG" | tr ":" " "`	# zmena oddelovace na mezeru, abychom mohli iterovat
 		 for i in $OPTARG
 		 do
@@ -180,7 +225,7 @@ function readParams()
          SWITCHES[$((J++))]="e";;	# zapamatujeme si zpracovany prepinac
 		 
       f) # CONFIG
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -f"
+		 [ -z "$OPTARG" ] && error "the value of the switch -f was not provided"
 		 ! [ -e $OPTARG ] && error "provided configuration file \"$OPTARG\" does not exist"
 		 ! [ -f $OPTARG ] && error "provided configuration file \"$OPTARG\" is not a regular file"
 		 ! [ -r $OPTARG ] && error "provided configuration file \"$OPTARG\" cannot be read"
@@ -199,12 +244,12 @@ function readParams()
 		 CONFIG="$OPTARG";;	# ok
 
       n) # NAME
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -n"
+		 [ -z "$OPTARG" ] && error "the value of the switch -n was not provided"
          SWITCHES[$((J++))]="n"	# zapamatujeme si zpracovany prepinac
 		 NAME="$OPTARG";;	# kontrola neni nutna
 
       F) # FPS
-		 [ -z "$OPTARG" ] && error "nebyla zadana hodnota prepinace -F"
+		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # neciselna hodnota, mel by byt int/float
            error "spatny parametr prepinace F"; }
          SWITCHES[$((J++))]="F"	# zapamatujeme si zpracovany prepinac
@@ -214,7 +259,8 @@ function readParams()
          SWITCHES[$((J++))]="v"	# zapamatujeme si zpracovany prepinac
          VERBOSE=1;;
 
-     \?) echo "pripustne prepinace: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# prepinac, ktery neni definovan
+     \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# prepinac, ktery neni definovan
+     #\?) echo "pripustne prepinace: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# prepinac, ktery neni definovan
 		 exit 2;;
    esac
   done
@@ -250,6 +296,10 @@ function checkFiles()
 
   done
 }
+
+
+# tady jeste rovnou soubory ukladat do nejake promenne, pokud jsou validni
+
 
 
 
@@ -515,9 +565,11 @@ function readConfig()
 #-------------------------------------------------------------------------------
   readParams "$@"
   shift `expr $OPTIND - 1`	# posun na prikazove radce
-  
+  [[ "$VERBOSE" == 1 ]] && verbose "zpracovane prepinace ${SWITCHES[@]}"
   checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
 
+
+# pokud je definovan verbose, tak vypsat vsechny zpracovane prepinace a datove soubory
 
 
   echo "${SWITCHES[@]}"
