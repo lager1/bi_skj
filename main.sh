@@ -240,7 +240,8 @@ function readParams()
 #-------------------------------------------------------------------------------
 # function for checking the data files
 #	1) "$@" - all remaining arguments, which vere provided on execution - data files
-# function only checks if the files exist and if they are readable
+# function checks if the files exist and if they are readable
+# result of the processing is saved in the global variables
 # mohlo by se zkoumat zda na sebe i napr nejak navazuji ?
 #-------------------------------------------------------------------------------
 
@@ -294,16 +295,12 @@ function checkSwitch()
 
 
 
-
-
-
-
 #-------------------------------------------------------------------------------
-# funkce pro cteni konfiguracniho souboru
-# parametry:
-#	1) konfiguracni soubor
-# vysledek zpracovani je ulozen v globalnich promennych
-# pri chybe rovnou koncime program pomoci exit 1
+# fucntion for reading the configuration file
+# parameters:
+#	1) the configuration file
+# the result of the processing is saved in the global variables
+# when an error occurs it is sent to the error function
 #-------------------------------------------------------------------------------
 function readConfig()
 {
