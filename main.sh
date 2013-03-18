@@ -81,18 +81,8 @@
 #-------------------------------------------------------------------------------
 # function for reporting information about script progress
 # parameters:
-#   function takes 
+#   function takes arbitrary number of arguments
 # all of the parameters ale printed to the standart output
-#-------------------------------------------------------------------------------
-
-
-# funkce musi byt navrzena trochu jinak, aby vystup daval smysl
-
-#-------------------------------------------------------------------------------
-# funkce pro vypisovani informaci o prubehu skriptu
-# parametry:
-#   funkce bere libovolny pocet parametru
-# vsechny parametry jsou vypsany na standartni vystup
 #-------------------------------------------------------------------------------
 function verbose()
 {
@@ -105,25 +95,11 @@ function verbose()
   echo ""
 }
 #-------------------------------------------------------------------------------
-
-
-
-
-#-------------------------------------------------------------------------------
-# function for reporting errors
+# function for error reporting
 # parameters:
-#   function takes 
+#   function takes arbitrary number of arguments
 # all of the parameters ale printed to the standart error output
-# fuction  exits the whole script with exit 1
-#-------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------
-# funkce pro vypisovani chyb
-# parametry:
-#   funkce bere libovolny pocet parametru
-# vsechny parametry jsou vypsany na standartni chybovy vystup
-# funkce nasledne ukoncuje cely skript pomoci exit 1
+# fuction subsequently exits the whole script with exit 1
 #-------------------------------------------------------------------------------
 function error()
 {
@@ -136,24 +112,12 @@ function error()
 
   exit 1;
 }
-
-
 #-------------------------------------------------------------------------------
 # function for reading and evaluation of parameters
 # parameters:
-#	1) "$@" - 
-# vysledek zpracovani je ulozen v globalnich promennych
-# whenn an error occurs it is sent to the error function
-#-------------------------------------------------------------------------------
-
-
-
-#-------------------------------------------------------------------------------
-# funkce pro cteni a vyhodnoceni paramemetru
-# parametry:
-#	1) "$@" - zpracujeme vsechny prepinace zadane skritu
-# vysledek zpracovani je ulozen v globalnich promennych
-# pri chybe rovnou koncime program pomoci exit 1
+#	1) "$@" - we process all of the switches passed to the script
+# result of the processing is saved in the global variables
+# when an error occurs it is sent to the error function
 #-------------------------------------------------------------------------------
 function readParams()
 {
