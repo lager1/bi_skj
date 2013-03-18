@@ -121,12 +121,12 @@ function error()
 #-------------------------------------------------------------------------------
 function readParams()
 {
-  J=0 # indexace $SWITCHES
-  A=0 # indexace $GNUPLOTPARAMS
-  B=0 # indexace $EFFECTPARAMS
+  J=0 # indexing of $SWITCHES
+  A=0 # indexing of $GNUPLOTPARAMS
+  B=0 # indexing of $EFFECTPARAMS
 
 
-  while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing of the switches
+  while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
   do
    case "$opt" in
       t) # TIMEFORM
@@ -148,29 +148,29 @@ function readParams()
 
       Y) # YMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -Y was not provided"
-		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # ani jedna z definovanych hodnot
-		   error "spatny parametr prepinace Y"; }
+		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
+		   error "wrong argument of the switch -Y"; }
          SWITCHES[$((J++))]="Y"	# save the processed switch
 		 YMAX="$OPTARG";; # save the argument of the switch
 
       y) # YMIN
 		 [ -z "$OPTARG" ] && error "the value of the switch -y was not provided"
-		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # ani jedna z definovanych hodnot
-		   error "spatny parametr prepinace y"; }
+		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
+		   error "wrong argument of the switch -y"; }
          SWITCHES[$((J++))]="y"	# save the processed switch
 		 YMIN="$OPTARG";; # save the argument of the switch
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
-		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
-		   error "spatny parametr prepinace S"; }
+		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
+		   error "wrong argument of the switch -S"; }
          SWITCHES[$((J++))]="S"	# save the processed switch
 		 SPEED="$OPTARG";; # save the argument of the switch
 
       T) # DURATION
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
-		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
-		   error "spatny parametr prepinace T"; }
+		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
+		   error "wrong argument of the switch -T"; }
          SWITCHES[$((J++))]="T"	# save the processed switch
 		 DURATION="$OPTARG";; # save the argument of the switch
 
@@ -190,8 +190,8 @@ function readParams()
 		 OPTARG=`echo "$OPTARG" | tr ":" " "`	# change the seperator to space so we could iterate
 		 for i in $OPTARG
 		 do
-		   ! [[ "$i" =~ ^bgcolor=.*$ || "$i" =~ ^changebgcolor$ || "$i" =~ ^changespeed=[1-5]$ ]] && { # kontrola, zda ma promenna spravny tvar
-             error "spatny parametr prepinace e"; }
+		   ! [[ "$i" =~ ^bgcolor=.*$ || "$i" =~ ^changebgcolor$ || "$i" =~ ^changespeed=[1-5]$ ]] && { # check the argument value
+             error "wrong argument of the switch -e"; }
 		   EFFECTPARAMS[$((B++))]="$i"	# save the argument of the switch or a part of it
 	     done
          SWITCHES[$((J++))]="e";;	# save the processed switch
@@ -215,10 +215,10 @@ function readParams()
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
-		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # neciselna hodnota, mel by byt int/float
-           error "spatny parametr prepinace F"; }
+		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # non-numeric value, should be int/float
+           error "wrong argument of the switch -F"; }
          SWITCHES[$((J++))]="F"	# save the processed switch
-		 FPS="$OPTARG";;	# kontrola neni nutna
+		 FPS="$OPTARG";; # save the argument of the switch
 
       v) # VERBOSE
          SWITCHES[$((J++))]="v"	# save the processed switch
