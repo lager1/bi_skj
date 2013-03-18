@@ -1,18 +1,19 @@
 #!/bin/bash
 
 #
-# testovaci skript pro semetralni praci z predmetu BI-SKJ, FIT CVUT, 2013, letni semestr
+# testing script for semestr work from subject BI-SKJ, FIT CVUT, 2013, summer semester
 #
-# skript bere jako parametr nazev skriptu, ktery ma byt otestovan
+# the script takes an argument, which is full path of the script, which should be tested
 #
 #
 
+
 #-------------------------------------------------------------------------------
-# funkce pro vypisovani chyb
-# parametry:
-#   funkce bere libovolny pocet parametru
-# vsechny parametry jsou vypsany na standartni chybovy vystup
-# funkce nasledne ukoncuje cely skript pomoci exit 1
+# function for error reporting
+# parameters:
+#   function takes arbitrary number of arguments
+# all of the parameters are printed on the standard error output
+# function subsequently exits the whole script with exit 1
 #-------------------------------------------------------------------------------
 function error()
 {
@@ -25,12 +26,12 @@ function error()
 
   exit 1;
 }
-
 #-------------------------------------------------------------------------------
-# funkce pro kontrolu prepinacu skriptu
-# parametry:
-#   funkce bere jeden argument - prepinac, ktery ma byt testovan
-# funkce predava prepinaci prazdnout hodnotu
+# function for checking the script parameters
+# parameters:
+#   1)full path of the script
+#   2)the switch, which should be tested
+# function passes an empty value to the switch
 #-------------------------------------------------------------------------------
 function switchTest1()
 {
@@ -40,13 +41,10 @@ function switchTest1()
   echo "testing $1 -$2 ''"
   eval "$1 -$2 ''"
 }
-
-
-
 #-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
-  # zajima nas pouze prvni prednany argument, vic nic
+  # we are only interested in the first passed argument, nothing more
 
   ! [[ -e "$1" ]] && error "provided script \"$1\" does not exist"
   ! [[ -f "$1" ]] && error "provided script \"$1\" is not a regular file"
