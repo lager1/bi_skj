@@ -2,7 +2,7 @@
 
 
 #
-
+#
 # semester work from subject BI-SKJ, FIT CVUT, 2013, summer semester
 #
 # This script generates animation based on provided data files,
@@ -126,74 +126,75 @@ function readParams()
   B=0 # indexace $EFFECTPARAMS
 
 
-  while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cyklus pro zpracovani prepinacu	
+  while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing of the switches
   do
    case "$opt" in
       t) # TIMEFORM
          # ma smysl tu nejak testovat hodnotu v OPTARG, pokud ano, tak jak?
          
 		 [ -z "$OPTARG" ] && error "the value of the switch -t was not provided"
-         SWITCHES[$((J++))]="t"	# zapamatujeme si zpracovany prepinac
-		 TIMEFORM="$OPTARG";; # ok
+         SWITCHES[$((J++))]="t"	# save the processed switch
+		 TIMEFORM="$OPTARG";; # save the argument of the switch
 
       X) # XMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -X was not provided"
-         SWITCHES[$((J++))]="X"	# zapamatujeme si zpracovany prepinac
-		 XMAX="$OPTARG";; # ok
+         SWITCHES[$((J++))]="X"	# save the processed switch
+		 XMAX="$OPTARG";; # save the argument of the switch
       
       x) # XMIN 
 		 [ -z "$OPTARG" ] && error "the value of the switch -x was not provided"
-         SWITCHES[$((J++))]="x"	# zapamatujeme si zpracovany prepinac
-		 XMIN="$OPTARG";; # ok
+         SWITCHES[$((J++))]="x"	# save the processed switch
+		 XMIN="$OPTARG";; # save the argument of the switch
 
       Y) # YMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -Y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # ani jedna z definovanych hodnot
 		   error "spatny parametr prepinace Y"; }
-         SWITCHES[$((J++))]="Y"	# zapamatujeme si zpracovany prepinac
-		 YMAX="$OPTARG";; 	# ok
+         SWITCHES[$((J++))]="Y"	# save the processed switch
+		 YMAX="$OPTARG";; # save the argument of the switch
 
       y) # YMIN
 		 [ -z "$OPTARG" ] && error "the value of the switch -y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # ani jedna z definovanych hodnot
 		   error "spatny parametr prepinace y"; }
-         SWITCHES[$((J++))]="y"	# zapamatujeme si zpracovany prepinac
-		 YMIN="$OPTARG";;	# ok
+         SWITCHES[$((J++))]="y"	# save the processed switch
+		 YMIN="$OPTARG";; # save the argument of the switch
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
 		   error "spatny parametr prepinace S"; }
-         SWITCHES[$((J++))]="S"	# zapamatujeme si zpracovany prepinac
-		 SPEED="$OPTARG";;	# ok
+         SWITCHES[$((J++))]="S"	# save the processed switch
+		 SPEED="$OPTARG";; # save the argument of the switch
 
       T) # DURATION
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# neciselna hodnota, mel by byt int/float
 		   error "spatny parametr prepinace T"; }
-         SWITCHES[$((J++))]="T"	# zapamatujeme si zpracovany prepinac
-		 DURATION="$OPTARG";;	# ok
+         SWITCHES[$((J++))]="T"	# save the processed switch
+		 DURATION="$OPTARG";; # save the argument of the switch
 
       l) # LEGEND		 
 		 [ -z "$OPTARG" ] && error "the value of the switch -l was not provided"
-         SWITCHES[$((J++))]="l"	# zapamatujeme si zpracovany prepinac
-		 LEGEND="$OPTARG";; #text, neni potreba kontrola
+         SWITCHES[$((J++))]="l"	# save the processed switch
+		 LEGEND="$OPTARG";; # save the argument of the switch, no value check needed
 
       g) # GNUPLOTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -g was not provided"
-		 GNUPLOTPARAMS[$((A++))]="$OPTARG"	# ulozime si hodnotu
-         SWITCHES[$((J++))]="g";;	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="g"	# save the processed switch
+		 GNUPLOTPARAMS[$((A++))]="$OPTARG";; # save the argument of the switch, no value check needed
+
       
       e) # EFFECTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -e was not provided"
-		 OPTARG=`echo "$OPTARG" | tr ":" " "`	# zmena oddelovace na mezeru, abychom mohli iterovat
+		 OPTARG=`echo "$OPTARG" | tr ":" " "`	# change the seperator to space so we could iterate
 		 for i in $OPTARG
 		 do
 		   ! [[ "$i" =~ ^bgcolor=.*$ || "$i" =~ ^changebgcolor$ || "$i" =~ ^changespeed=[1-5]$ ]] && { # kontrola, zda ma promenna spravny tvar
              error "spatny parametr prepinace e"; }
-		   EFFECTPARAMS[$((B++))]="$i"	# ok, uloz do pole
+		   EFFECTPARAMS[$((B++))]="$i"	# save the argument of the switch or a part of it
 	     done
-         SWITCHES[$((J++))]="e";;	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="e";;	# save the processed switch
 		 
       f) # CONFIG
 		 [ -z "$OPTARG" ] && error "the value of the switch -f was not provided"
@@ -201,37 +202,29 @@ function readParams()
 		 ! [ -f $OPTARG ] && error "provided configuration file \"$OPTARG\" is not a regular file"
 		 ! [ -r $OPTARG ] && error "provided configuration file \"$OPTARG\" cannot be read"
 
-		 #! [ -e $OPTARG ] && error "zadany konfiguracni soubor \"$OPTARG\" neexistuje"
-		 #! [ -f $OPTARG ] && error "zadany konfiguracni soubor \"$OPTARG\" neni bezny soubor"
-		 #! [ -r $OPTARG ] && error "zadany konfiguracni soubor \"$OPTARG\" neni mozne cist"
-
          # tady jeste muze nastat situace, ze soubor lze cist -> ale cesta je takova, ze ho nelze napr ani listovat
          # => /root/.bashrc
 
-		 #! [ -e $OPTARG ] && { echo "zadany konfiguracni soubor $OPTARG neexistuje"; exit 1; }
-		 #! [ -f $OPTARG ] && { echo "zadany konfiguracni soubor $OPTARG neni bezny soubor"; exit 1; }
-		 #! [ -r $OPTARG ] && { echo "zadany konfiguracni soubor $OPTARG neni mozne cist"; exit 1; }
-         SWITCHES[$((J++))]="f"	# zapamatujeme si zpracovany prepinac
-		 CONFIG="$OPTARG";;	# ok
+         SWITCHES[$((J++))]="f"	# save the processed switch
+		 CONFIG="$OPTARG";;	# save the argument of the switch
 
       n) # NAME
 		 [ -z "$OPTARG" ] && error "the value of the switch -n was not provided"
-         SWITCHES[$((J++))]="n"	# zapamatujeme si zpracovany prepinac
-		 NAME="$OPTARG";;	# kontrola neni nutna
+         SWITCHES[$((J++))]="n"	# save the processed switch
+		 NAME="$OPTARG";; # save the argument of the switch, no value check needed
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # neciselna hodnota, mel by byt int/float
            error "spatny parametr prepinace F"; }
-         SWITCHES[$((J++))]="F"	# zapamatujeme si zpracovany prepinac
+         SWITCHES[$((J++))]="F"	# save the processed switch
 		 FPS="$OPTARG";;	# kontrola neni nutna
 
       v) # VERBOSE
-         SWITCHES[$((J++))]="v"	# zapamatujeme si zpracovany prepinac
-         VERBOSE=1;;
+         SWITCHES[$((J++))]="v"	# save the processed switch
+         VERBOSE=1;; # set the value of global variable
 
-     \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# prepinac, ktery neni definovan
-     #\?) echo "pripustne prepinace: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# prepinac, ktery neni definovan
+     \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
 		 exit 2;;
    esac
   done
@@ -245,7 +238,7 @@ function readParams()
 
 
 #-------------------------------------------------------------------------------
-# function for checking data files
+# function for checking the data files
 #	1) "$@" - all remaining arguments, which vere provided on execution - data files
 # function only checks if the files exist and if they are readable
 # mohlo by se zkoumat zda na sebe i napr nejak navazuji ?
