@@ -39,9 +39,6 @@ function switchTest1()
 
   echo "testing $1 -$2 ''"
   eval "$1 -$2 ''"
-  
-  echo "testing $1 -$2 '\`'"
-  eval "$1 -$2 '\`'"
 }
 
 
