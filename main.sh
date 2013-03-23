@@ -286,6 +286,7 @@ function checkFiles()
       
       if [[ "$?" -eq 0 ]]       # check return code
       then
+        [[ $VERBOSE -eq 1 ]] && verbose "file \"$i\" downloaded as \"$tmp\""
         DATA[$((data_idx++))]="$tmp"  # provided data file is ok
       else
         st=$(wget -O "$tmp" "$i" 2>&1)
@@ -578,10 +579,12 @@ function readConfig()
 #-------------------------------------------------------------------------------
   readParams "$@"
   shift `expr $OPTIND - 1`	# posun na prikazove radce
-  [[ "$VERBOSE" == 1 ]] && verbose "zpracovane prepinace ${SWITCHES[@]}"
+  [[ $VERBOSE -eq 1 ]] && verbose "processed switches ${SWITCHES[@]}"
   
+  [[ $CONFIG -ne 0 ]] && readConfig "$CONFIG"
+
   checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
-  [[ "$VERBOSE" == 1 ]] && verbose "data files ${DATA[@]}"
+  [[ $VERBOSE -eq 1 ]] && verbose "data files ${DATA[@]}"
 
 # pokud je definovan verbose, tak vypsat vsechny zpracovane prepinace a datove soubory
 
