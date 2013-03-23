@@ -49,6 +49,14 @@
 #
 
 
+
+#
+# pokud by se melo kreslit vice grafu pro stejny casovy interval, tak:
+# pokud se neshouji casove udaje pro vsechny soubory -> odriznout prvni casti vsech souboru a navzajem porovnat diffem
+# -> error uzivateli, spatny format dat
+
+
+
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ j=0
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ sw[$((j++))]="retezec"
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ echo $j
@@ -105,7 +113,7 @@ function error()
 {
   for i in "$@"
   do
-    echo "ERROR: $i" >&2
+    echo -e "ERROR: $i" >&2
   done
 
   echo "exitting"
@@ -243,6 +251,12 @@ function readParams()
 # function checks if the files exist and if they are readable
 # result of the processing is saved in the global variables
 # mohlo by se zkoumat zda na sebe i napr nejak navazuji ?
+# dale by bylo vhodne konktrolovat zda neni soubor na webu, pokud ano, tak stahnout abychom s nim mohli dale pracovat
+# je nutne ukladat data nekam do docasneho umisteni
+#
+# -> mktemp
+#
+
 #-------------------------------------------------------------------------------
 
 
@@ -256,23 +270,59 @@ function readParams()
 #-------------------------------------------------------------------------------
 function checkFiles()
 {
-  local data_idx=0      # index for data files field
+  local data_idx=0      # index for data files
 
   [[ -z "$1" ]] && error "no data files were provided"
 
   for i in "$@"
   do
-    ! [[ -e "$i" ]] && error "provided data file \"$i\" does not exist"
-    ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
-    ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
+    if [[ "$i" =~ ^http://.*$|^https://.*$ ]]     # the file is somewhere on the web
+    then
+      local tmp;
+      local st;
+      tmp=`mktemp` # create a temporary file to save the data
+      #st=`mktemp` # create a temporary file to save the download status
 
-    DATA[$((data_idx++))]="$1"  # provided data file is ok
+      #[[ `wget -O "$tmp" "$i" &> "$st"` -ne 0 ]] && error "an error occured when downloading the file, details:\n`cat "$st"`"
+      #! [[ `wget -O "$tmp" "$i" &> "$st"` ]] && error "an error occured when downloading the file, details:\n`cat "$st"`"
+      #st=$(wget -O "$tmp" "$i" &> "$st")
+      #if [[ $(wget -q -O "$tmp" "$i") -eq 0 ]]
+      #if [[ $(wget -q -O "$tmp" "$i") -eq 0 ]]
+      wget -q -O "$tmp" "$i"
+      ret="$?"
+      echo "\$ret $ret"
+      if [[ "$ret" -eq 0 ]]
+      then
+        echo "ok"
+      else
+        echo "fail"
+      fi
+        
+      #st=$(wget -O "$tmp" "$i" 2>&1)
+      #! [[ "$?" ]] && error "an error occured when downloading the file, details:\n$st"
+      #st=`wget -O "$tmp" "$i" &> "$st"`
+      #echo "navratovy kod je $?"
+      #echo "$st"
+
+        # tady nebude soubor se statusem smazan
+
+      #echo "ok"
+
+#   mazat soubory? kdy?
+
+      DATA[$((data_idx++))]="$tmp"  # provided data file is ok
+      #rm "$st"
+    else
+      echo "soubor neni na webu"
+      ! [[ -e "$i" ]] && error "provided data file \"$i\" does not exist"
+      ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
+      ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
+
+      DATA[$((data_idx++))]="$i"  # provided data file is ok
+    fi
 
   done
 }
-
-
-
 #-------------------------------------------------------------------------------
 # funkce pro kontrolu, zda je jsme zpracovali zadany prepinac
 # parametry:
