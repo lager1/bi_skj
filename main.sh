@@ -278,42 +278,21 @@ function checkFiles()
   do
     if [[ "$i" =~ ^http://.*$|^https://.*$ ]]     # the file is somewhere on the web
     then
-      local tmp;
-      local st;
+      local tmp
+      local st
       tmp=`mktemp` # create a temporary file to save the data
-      #st=`mktemp` # create a temporary file to save the download status
-
-      #[[ `wget -O "$tmp" "$i" &> "$st"` -ne 0 ]] && error "an error occured when downloading the file, details:\n`cat "$st"`"
-      #! [[ `wget -O "$tmp" "$i" &> "$st"` ]] && error "an error occured when downloading the file, details:\n`cat "$st"`"
-      #st=$(wget -O "$tmp" "$i" &> "$st")
-      #if [[ $(wget -q -O "$tmp" "$i") -eq 0 ]]
-      #if [[ $(wget -q -O "$tmp" "$i") -eq 0 ]]
-      wget -q -O "$tmp" "$i"
-      ret="$?"
-      echo "\$ret $ret"
-      if [[ "$ret" -eq 0 ]]
+      
+      wget -q -O "$tmp" "$i"    # download
+      
+      if [[ "$?" -eq 0 ]]       # check return code
       then
-        echo "ok"
+        DATA[$((data_idx++))]="$tmp"  # provided data file is ok
       else
-        echo "fail"
+        st=$(wget -O "$tmp" "$i" 2>&1)
+        error "an error occured when downloading the file, details:\n$st"
       fi
-        
-      #st=$(wget -O "$tmp" "$i" 2>&1)
-      #! [[ "$?" ]] && error "an error occured when downloading the file, details:\n$st"
-      #st=`wget -O "$tmp" "$i" &> "$st"`
-      #echo "navratovy kod je $?"
-      #echo "$st"
-
-        # tady nebude soubor se statusem smazan
-
-      #echo "ok"
-
-#   mazat soubory? kdy?
-
-      DATA[$((data_idx++))]="$tmp"  # provided data file is ok
-      #rm "$st"
+    
     else
-      echo "soubor neni na webu"
       ! [[ -e "$i" ]] && error "provided data file \"$i\" does not exist"
       ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
       ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
