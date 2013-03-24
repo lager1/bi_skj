@@ -681,14 +681,24 @@ function readConfig()
   CHANGESPEED=1				# rychlost zmeny barvy pozadi
   DIRECTION=0				# "smer", kterym menime barvu pozadi
   VERBOSE=0
-  typeset -A CONFIG         # asociativni pole pro konfiguracni promenne, indexy jsou prepinace, hodnoty jsou jejich argumenty
 
 
 #-------------------------------------------------------------------------------
   readParams "$@"
   shift `expr $OPTIND - 1`	# posun na prikazove radce
-  [[ $VERBOSE -eq 1 ]] && verbose "processed switches ${SWITCHES[@]}"
-  
+  if [[ $VERBOSE -eq 1 ]] 
+  then
+    verbose "processed switches ${SWITCHES[@]}"
+
+    #for i in "${!CONFIG[@]}"
+    for i in "${SWITCHES[@]}"
+    do
+      verbose "value of the switch -$i ${CONFIG["$i"]}"
+    done
+  fi
+
+
+#  [[ "${CONFIG["f"]}" != "" ]] && readConfig "${CONFIG["f"]}"
   #[[ "$CONFIG" -ne 0 ]] && readConfig "$CONFIG"
   #[[ "$CONFIG" != "0" ]] && readConfig "$CONFIG"
 
