@@ -122,7 +122,7 @@ function error()
 }
 
 
-# dodelat prepinac -c !!!!!!
+# dodelat prepinac -c !!!!!! -E take
 #=====================
 #=====================
 #=====================
@@ -148,10 +148,6 @@ function readParams()
   local gp_params_idx=0     # indexing of $GNUPLOTPARAMS
   local eff_params_idx=0    # indexing of $GNUPLOTPARAMS 
 
-  switches_idx=0 # indexing of $SWITCHES
-  A=0 # indexing of $GNUPLOTPARAMS
-  B=0 # indexing of $EFFECTPARAMS
-
   while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
   do
    case "$opt" in
@@ -160,16 +156,19 @@ function readParams()
          
 		 [ -z "$OPTARG" ] && error "the value of the switch -t was not provided"
          SWITCHES[$((switches_idx++))]="t"	# save the processed switch
+         CONFIG["t"]="$OPTARG"
 		 TIMEFORM="$OPTARG";; # save the argument of the switch
 
       X) # XMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -X was not provided"
          SWITCHES[$((switches_idx++))]="X"	# save the processed switch
+         CONFIG["X"]="$OPTARG"
 		 XMAX="$OPTARG";; # save the argument of the switch
       
       x) # XMIN 
 		 [ -z "$OPTARG" ] && error "the value of the switch -x was not provided"
          SWITCHES[$((switches_idx++))]="x"	# save the processed switch
+         CONFIG["x"]="$OPTARG"
 		 XMIN="$OPTARG";; # save the argument of the switch
 
       Y) # YMAX
@@ -177,6 +176,7 @@ function readParams()
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
 		   error "wrong argument of the switch -Y"; }
          SWITCHES[$((switches_idx++))]="Y"	# save the processed switch
+         CONFIG["Y"]="$OPTARG"
 		 YMAX="$OPTARG";; # save the argument of the switch
 
       y) # YMIN
@@ -184,6 +184,7 @@ function readParams()
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
 		   error "wrong argument of the switch -y"; }
          SWITCHES[$((switches_idx++))]="y"	# save the processed switch
+         CONFIG["y"]="$OPTARG"
 		 YMIN="$OPTARG";; # save the argument of the switch
 
       S) # SPEED
@@ -191,6 +192,7 @@ function readParams()
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -S"; }
          SWITCHES[$((switches_idx++))]="S"	# save the processed switch
+         CONFIG["S"]="$OPTARG"
 		 SPEED="$OPTARG";; # save the argument of the switch
 
       T) # DURATION
@@ -198,16 +200,19 @@ function readParams()
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -T"; }
          SWITCHES[$((switches_idx++))]="T"	# save the processed switch
+         CONFIG["T"]="$OPTARG"
 		 DURATION="$OPTARG";; # save the argument of the switch
 
       l) # LEGEND		 
 		 [ -z "$OPTARG" ] && error "the value of the switch -l was not provided"
          SWITCHES[$((switches_idx++))]="l"	# save the processed switch
+         CONFIG["l"]="$OPTARG"
 		 LEGEND="$OPTARG";; # save the argument of the switch, no value check needed
 
       g) # GNUPLOTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -g was not provided"
          SWITCHES[$((switches_idx++))]="g"	# save the processed switch
+         CONFIG["g"]="$OPTARG"
 		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
       
       e) # EFFECTPARAMS
@@ -219,6 +224,7 @@ function readParams()
              error "wrong argument of the switch -e"; }
 		   EFFECTPARAMS[$((eff_params_idx++))]="$i"	# save the argument of the switch or a part of it
 	     done
+         CONFIG["e"]="$OPTARG"
          SWITCHES[$((switches_idx++))]="e";;	# save the processed switch
 		 
       f) # CONFIG
@@ -231,11 +237,13 @@ function readParams()
          # => /root/.bashrc
 
          SWITCHES[$((switches_idx++))]="f"	# save the processed switch
+         CONFIG["f"]="$OPTARG"
 		 CONFIG="$OPTARG";;	# save the argument of the switch
 
       n) # NAME
 		 [ -z "$OPTARG" ] && error "the value of the switch -n was not provided"
          SWITCHES[$((switches_idx++))]="n"	# save the processed switch
+         CONFIG["n"]="$OPTARG"
 		 NAME="$OPTARG";; # save the argument of the switch, no value check needed
 
       F) # FPS
@@ -243,10 +251,12 @@ function readParams()
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # non-numeric value, should be int/float
            error "wrong argument of the switch -F"; }
          SWITCHES[$((switches_idx++))]="F"	# save the processed switch
+         CONFIG["F"]="$OPTARG"
 		 FPS="$OPTARG";; # save the argument of the switch
 
       v) # VERBOSE
          SWITCHES[$((switches_idx++))]="v"	# save the processed switch
+         CONFIG["v"]="1"
          VERBOSE=1;; # set the value of global variable
 
      \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
@@ -319,6 +329,33 @@ function checkFiles()
     fi
 
   done
+
+
+
+# tady pridelat nejakou dalsi kontrolu neceho .. 
+# kontrola poctu zaznamu -> pokud mame vice souboru, tak nas zajima, zda kreslime do jednoho grafu vice krivek
+  if [[ $# -gt 1 ]]
+  then
+    for i in "${DATA[@]}"
+    do
+      [[ $(wc -l "${DATA[0]}" | cut -d" " -f1) -ne $(wc -l "$i" | cut -d" " -f1) ]] && MULTIPLOT="false"
+    done
+  fi
+  
+  # kontrola stejnych casovych udaju
+
+
+
+  MULTIPLOT="true"
+
+
+  echo "MULTIPLOT: $MULTIPLOT"
+
+
+
+
+
+
 }
 
 
@@ -601,7 +638,7 @@ function readConfig()
 # main
 #-------------------------------------------------------------------------------
   # main configuration variables, global for whole file
-  CONFIG=0
+  #CONFIG=0
   TIMEFORM="[%Y-%m-%d %H:%M:%S]"
   XMAX="max"
   XMIN="min"
@@ -626,6 +663,7 @@ function readConfig()
   CHANGESPEED=1				# rychlost zmeny barvy pozadi
   DIRECTION=0				# "smer", kterym menime barvu pozadi
   VERBOSE=0
+  typeset -A CONFIG         # asociativni pole pro konfiguracni promenne, indexy jsou prepinace, hodnoty jsou jejich argumenty
 
 
 #-------------------------------------------------------------------------------
@@ -634,7 +672,7 @@ function readConfig()
   [[ $VERBOSE -eq 1 ]] && verbose "processed switches ${SWITCHES[@]}"
   
   #[[ "$CONFIG" -ne 0 ]] && readConfig "$CONFIG"
-  [[ "$CONFIG" != "0" ]] && readConfig "$CONFIG"
+  #[[ "$CONFIG" != "0" ]] && readConfig "$CONFIG"
 
   checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
   [[ $VERBOSE -eq 1 ]] && verbose "data files ${DATA[@]}"
