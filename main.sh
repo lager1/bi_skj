@@ -639,19 +639,37 @@ function readConfig()
 #-------------------------------------------------------------------------------
   # main configuration variables, global for whole file
   #CONFIG=0
-  TIMEFORM="[%Y-%m-%d %H:%M:%S]"
-  XMAX="max"
-  XMIN="min"
-  YMAX="auto"
-  YMIN="auto"
-  SPEED=1
-  DURATION=0
-  FPS=25
-  typeset -a GNUPLOTPARAMS 	# pole
-  typeset -a EFECTPARAMS	# pole
-  ERRORS="true"				# true
-  LEGEND=0
-  NAME=0
+  typeset -A CONFIG         # asociativni pole pro konfiguracni promenne, indexy jsou prepinace, hodnoty jsou jejich argumenty
+  CONFIG["t"]="[%Y-%m-%d %H:%M:%S]" # timestamp format
+  CONFIG["X"]="max"                 # maximum x-axis value
+  CONFIG["x"]="min"                 # minimum X-axis value
+  CONFIG["Y"]="auto"                # maximum y-axis value
+  CONFIG["y"]="auto"                # minimum y-axis value
+  CONFIG["S"]=1                     # speed - number of data entries in one picture 
+  CONFIG["F"]=25                    # frames per second
+  CONFIG["f"]=""                    # configuration file
+  CONFIG["n"]=""                    # name of the output directory
+  CONFIG["l"]=""                    # legend of the graph
+
+
+  # doplnit neimplementovane prepinace -c, -E
+  
+  
+  
+  
+ # TIMEFORM="[%Y-%m-%d %H:%M:%S]"
+ # XMAX="max"
+ # XMIN="min"
+ # YMAX="auto"
+ # YMIN="auto"
+ # SPEED=1
+ # DURATION=0
+ # FPS=25
+ # typeset -a GNUPLOTPARAMS 	# pole
+ # typeset -a EFECTPARAMS	# pole
+ # ERRORS="true"				# true
+ # LEGEND=0
+ # NAME=0
   typeset -a SWITCHES       # pole, zapiseme jake prepinace jsme zpracovali
   typeset -a DATA			# pole obsahujici soubory s daty
   typeset -a TEMPFILES		# docasne soubory
