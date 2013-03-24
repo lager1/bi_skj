@@ -3,7 +3,7 @@
 
 #
 #
-# semester work from subject BI-SKJ, FIT CVUT, 2013, summer semester
+# semester work from subject BI-SKswitches_idx, FIT CVUT, 2013, summer semester
 #
 # This script generates animation based on provided data files,
 # additionaly its behavior can be affected by switches or by configuration file.
@@ -120,6 +120,21 @@ function error()
 
   exit 1;
 }
+
+
+# dodelat prepinac -c !!!!!!
+#=====================
+#=====================
+#=====================
+#=====================
+#=====================
+#=====================
+#=====================
+
+
+
+
+
 #-------------------------------------------------------------------------------
 # function for reading and evaluation of parameters
 # parameters:
@@ -129,10 +144,13 @@ function error()
 #-------------------------------------------------------------------------------
 function readParams()
 {
-  J=0 # indexing of $SWITCHES
+  local switches_idx=0      # indexing of $SWITCHES
+  local gp_params_idx=0     # indexing of $GNUPLOTPARAMS
+  local eff_params_idx=0    # indexing of $GNUPLOTPARAMS 
+
+  switches_idx=0 # indexing of $SWITCHES
   A=0 # indexing of $GNUPLOTPARAMS
   B=0 # indexing of $EFFECTPARAMS
-
 
   while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
   do
@@ -141,57 +159,56 @@ function readParams()
          # ma smysl tu nejak testovat hodnotu v OPTARG, pokud ano, tak jak?
          
 		 [ -z "$OPTARG" ] && error "the value of the switch -t was not provided"
-         SWITCHES[$((J++))]="t"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="t"	# save the processed switch
 		 TIMEFORM="$OPTARG";; # save the argument of the switch
 
       X) # XMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -X was not provided"
-         SWITCHES[$((J++))]="X"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="X"	# save the processed switch
 		 XMAX="$OPTARG";; # save the argument of the switch
       
       x) # XMIN 
 		 [ -z "$OPTARG" ] && error "the value of the switch -x was not provided"
-         SWITCHES[$((J++))]="x"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="x"	# save the processed switch
 		 XMIN="$OPTARG";; # save the argument of the switch
 
       Y) # YMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -Y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
 		   error "wrong argument of the switch -Y"; }
-         SWITCHES[$((J++))]="Y"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="Y"	# save the processed switch
 		 YMAX="$OPTARG";; # save the argument of the switch
 
       y) # YMIN
 		 [ -z "$OPTARG" ] && error "the value of the switch -y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
 		   error "wrong argument of the switch -y"; }
-         SWITCHES[$((J++))]="y"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="y"	# save the processed switch
 		 YMIN="$OPTARG";; # save the argument of the switch
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -S"; }
-         SWITCHES[$((J++))]="S"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="S"	# save the processed switch
 		 SPEED="$OPTARG";; # save the argument of the switch
 
       T) # DURATION
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -T"; }
-         SWITCHES[$((J++))]="T"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="T"	# save the processed switch
 		 DURATION="$OPTARG";; # save the argument of the switch
 
       l) # LEGEND		 
 		 [ -z "$OPTARG" ] && error "the value of the switch -l was not provided"
-         SWITCHES[$((J++))]="l"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="l"	# save the processed switch
 		 LEGEND="$OPTARG";; # save the argument of the switch, no value check needed
 
       g) # GNUPLOTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -g was not provided"
-         SWITCHES[$((J++))]="g"	# save the processed switch
-		 GNUPLOTPARAMS[$((A++))]="$OPTARG";; # save the argument of the switch, no value check needed
-
+         SWITCHES[$((switches_idx++))]="g"	# save the processed switch
+		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
       
       e) # EFFECTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -e was not provided"
@@ -200,9 +217,9 @@ function readParams()
 		 do
 		   ! [[ "$i" =~ ^bgcolor=.*$ || "$i" =~ ^changebgcolor$ || "$i" =~ ^changespeed=[1-5]$ ]] && { # check the argument value
              error "wrong argument of the switch -e"; }
-		   EFFECTPARAMS[$((B++))]="$i"	# save the argument of the switch or a part of it
+		   EFFECTPARAMS[$((eff_params_idx++))]="$i"	# save the argument of the switch or a part of it
 	     done
-         SWITCHES[$((J++))]="e";;	# save the processed switch
+         SWITCHES[$((switches_idx++))]="e";;	# save the processed switch
 		 
       f) # CONFIG
 		 [ -z "$OPTARG" ] && error "the value of the switch -f was not provided"
@@ -213,23 +230,23 @@ function readParams()
          # tady jeste muze nastat situace, ze soubor lze cist -> ale cesta je takova, ze ho nelze napr ani listovat
          # => /root/.bashrc
 
-         SWITCHES[$((J++))]="f"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="f"	# save the processed switch
 		 CONFIG="$OPTARG";;	# save the argument of the switch
 
       n) # NAME
 		 [ -z "$OPTARG" ] && error "the value of the switch -n was not provided"
-         SWITCHES[$((J++))]="n"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="n"	# save the processed switch
 		 NAME="$OPTARG";; # save the argument of the switch, no value check needed
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # non-numeric value, should be int/float
            error "wrong argument of the switch -F"; }
-         SWITCHES[$((J++))]="F"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="F"	# save the processed switch
 		 FPS="$OPTARG";; # save the argument of the switch
 
       v) # VERBOSE
-         SWITCHES[$((J++))]="v"	# save the processed switch
+         SWITCHES[$((switches_idx++))]="v"	# save the processed switch
          VERBOSE=1;; # set the value of global variable
 
      \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
@@ -303,6 +320,13 @@ function checkFiles()
 
   done
 }
+
+
+
+
+# predelano -> staci kdyz bude vracet pouze true/false
+
+
 #-------------------------------------------------------------------------------
 # funkce pro kontrolu, zda je jsme zpracovali zadany prepinac
 # parametry:
@@ -310,19 +334,35 @@ function checkFiles()
 # navratova hodnota: cislo, ktere rika, kolikrat byl dany prepinac
 # (direktiva v konfiguracnim souboru) zpracovan
 #-------------------------------------------------------------------------------
+
+
+
+
+#-------------------------------------------------------------------------------
+# funkce pro kontrolu, zda je jsme zpracovali zadany prepinac
+# parametry:
+#	1) prepinac, ktery kontrolujeme
+# navratova hodnota -> 1 ==> prepinac jsme zpracovali
+#                      0 ==> prepinac jsme nezpracovali
+
+
+
+# pokud bychom meli nekolik konfiguracnich souboru, tak by mohl byt problem
+# -> nedostali bychom posledni hodnotu
+# -> konfiguracni soubor muze byt pouze jeden -> posledni zadany na prikazove radce
+
+
+# navratova hodnota: cislo, ktere rika, kolikrat byl dany prepinac
+# (direktiva v konfiguracnim souboru) zpracovan
+#-------------------------------------------------------------------------------
 function checkSwitch()
 {
-  CNT=0;
-  for i in ${PREPINACE[@]}
+  for i in ${SWITCHES[@]}
   do
-    [ $i == $1 ] && ((CNT++));
+    [[ $i == $1 ]] && return 1;
   done
-  return $CNT;
+  return 0;
 }
-
-
-
-
 
 
 #-------------------------------------------------------------------------------
@@ -331,20 +371,29 @@ function checkSwitch()
 #	1) the configuration file
 # the result of the processing is saved in the global variables
 # when an error occurs it is sent to the error function
+
+# je dovolen prazdny(neobsahujici zadne direktivi) konfiguracni soubor?
+
 #-------------------------------------------------------------------------------
 function readConfig()
 {
   # indexace pomocneho pole
-  J=${#PREPINACE[@]}	# delka pole, budeme zapisovat dal
-  X=${#PREPINACE[@]}	# promenna pro kontrolu, zda vubec konfiraguracni soubor neco obsahuje
+  switches_idx=${#SWITCHES[@]}	# delka pole, budeme zapisovat dal
+  #X=${#SWITCHES[@]}	# promenna pro kontrolu, zda vubec konfiraguracni soubor neco obsahuje
+  # ve vysledku mozna nebude treba?
 
   # TIMEFORM
-  if checkSwitch t 	# zkoumame, zda jsme prepinac zpracovali
+  #if [[ checkSwitch t -eq 0 ]]	# zkoumame, zda jsme prepinac zpracovali
+  #if [[ checkSwitch -eq 0 ]]	# zkoumame, zda jsme prepinac zpracovali
+  if [[ "$(checkSwitch) t" -eq 0 ]]	# zkoumame, zda jsme prepinac zpracovali
   then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /TimeFormat/' | wc -l` -gt 1 ] && 
-    { echo "direktiva TimeFormat je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-	TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /TimeFormat/' | sed 's/TimeFormat //'`
-	! [[ $TMP =~ ^$ ]] && TIMEFORM=$TMP	# ok, direktiva je evedena
+
+    echo "hm"
+
+  #  [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /TimeFormat/' | wc -l` -gt 1 ] && 
+  #  { echo "direktiva TimeFormat je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+  #	TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /TimeFormat/' | sed 's/TimeFormat //'`
+  #	! [[ $TMP =~ ^$ ]] && TIMEFORM=$TMP	# ok, direktiva je evedena
   fi
 
   # YMAX
@@ -424,8 +473,8 @@ function readConfig()
         exit 1;
       fi
       DURATION=$TMP	# ok, direktiva je evedena a ma spravny format
-	  PREPINACE[$J]="T"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((J++))
+	  SWITCHES[$switches_idx]="T"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+	  ((switches_idx++))
     fi
   fi
 
@@ -468,8 +517,8 @@ function readConfig()
       EFFECTPARAMS[$A]=$i	# ok, uloz do pole
       ((A++))
     done
-    PREPINACE[$J]="e"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-    ((J++))
+    SWITCHES[$switches_idx]="e"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+    ((switches_idx++))
   fi
   
   # ERRORS
@@ -504,8 +553,8 @@ function readConfig()
     done
 	[ $CNT -gt 1 ] && { 
 	  # direktiva je v souboru uvedena alespon 1x
-	  PREPINACE[$J]="g";	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((J++));
+	  SWITCHES[$switches_idx]="g";	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+	  ((switches_idx++));
 	}
   fi
 
@@ -518,8 +567,8 @@ function readConfig()
     if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
     then
       LEGEND=$TMP	# ok, direktiva je evedena a ma spravny format
-	  PREPINACE[$J]="l"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((J++))
+	  SWITCHES[$switches_idx]="l"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+	  ((switches_idx++))
     fi
   fi
 
@@ -532,12 +581,15 @@ function readConfig()
     if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
     then
       NAME=$TMP	# ok, direktiva je evedena a ma spravny format
-	  PREPINACE[$J]="n"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((J++))
+	  SWITCHES[$switches_idx]="n"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+	  ((switches_idx++))
     fi
   fi
 
-  [ $X -eq $J ] && { echo "zadany konfiguracni soubor $CONFIG neobsahuje zadne direktivy"; exit 1; }
+
+  echo "nic"
+
+#  [[ $X -eq $switches_idx ]] && { echo "zadany konfiguracni soubor $CONFIG neobsahuje zadne direktivy"; exit 1; }
 }
 
 
@@ -581,7 +633,8 @@ function readConfig()
   shift `expr $OPTIND - 1`	# posun na prikazove radce
   [[ $VERBOSE -eq 1 ]] && verbose "processed switches ${SWITCHES[@]}"
   
-  [[ $CONFIG -ne 0 ]] && readConfig "$CONFIG"
+  #[[ "$CONFIG" -ne 0 ]] && readConfig "$CONFIG"
+  [[ "$CONFIG" != "0" ]] && readConfig "$CONFIG"
 
   checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
   [[ $VERBOSE -eq 1 ]] && verbose "data files ${DATA[@]}"
