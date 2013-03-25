@@ -342,7 +342,8 @@ function checkFiles()
   then
     for i in "${DATA[@]}"
     do
-      [[ $(wc -l "${DATA[0]}" | cut -d" " -f1) -ne $(wc -l "$i" | cut -d" " -f1) ]] && MULTIPLOT="false"
+      #[[ $(wc -l "${DATA[0]}" | cut -d" " -f1) -ne $(wc -l "$i" | cut -d" " -f1) ]] && MULTIPLOT="false"
+      [[ $(wc -l < "${DATA[0]}") -ne $(wc -l < "$i") ]] && MULTIPLOT="false"
       
 
       # na toto se jeste poptat, zda je implicitne timeformat a hodnota oddelena mezerou
