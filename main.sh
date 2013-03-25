@@ -214,6 +214,10 @@ function readParams()
          SWITCHES[$((switches_idx++))]="g"	# save the processed switch
          CONFIG["g"]="$OPTARG"
 		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
+   
+   
+   # tady jeste upravit podle efektu !!
+
       
       e) # EFFECTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -e was not provided"
@@ -339,11 +343,38 @@ function checkFiles()
     for i in "${DATA[@]}"
     do
       [[ $(wc -l "${DATA[0]}" | cut -d" " -f1) -ne $(wc -l "$i" | cut -d" " -f1) ]] && MULTIPLOT="false"
+      
+
+      # na toto se jeste poptat, zda je implicitne timeformat a hodnota oddelena mezerou
+      # dale, muze byt vice hodnot pro jeden casovy udaj v jednom souboru ?
+      
+      #[[ $(cat "${DATA[0]}" | cut -d"${CONFIG["t"]}" -f1-)]]
+      # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
+      #[[ $(cat "${DATA[0]}" | awk '{print $NF}')]]
+      #[[ $(cat "${DATA[0]}" | cut -d"${CONFIG["t"]}" -f1-) != $(cat "$i" | cut -d"${CONFIG["t"]}" -f1-) ]] && MULTIPLOT="false" #
+      local words=$(head -1 ${DATA[0]} | wc -w)
+      echo "$words"
+      #a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" " } { for(i = 1; i < words; i++) print $i,; }' | head)
+      #a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" " } { for(i = 1; i < words; i++) print; }' | head)
+      #a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" "; output = ""} { for(i = 1; i < words; i++) ouput += "$i," } END { print output }' | head)
+      
+      
+      
+      a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" "; ORS=" "} { for(i = 1; i < words; i++) print $i } END { print output }' | head)
+      #a=$(cat "${DATA[0]}" | awk -v words="$words" '{ for(i = 1; i < words; i++) print $i }' | head)
+      
+      
+      
+      #a=$(cat "${DATA[0]}" | awk '{print $NF}')
+    
+      echo "$a"
+
+
     done
   fi
   
   # kontrola stejnych casovych udaju
-
+  
 
 
   MULTIPLOT="true"
@@ -638,8 +669,7 @@ function readConfig()
 # main
 #-------------------------------------------------------------------------------
   # main configuration variables, global for whole file
-  #CONFIG=0
-  typeset -A CONFIG         # asociativni pole pro konfiguracni promenne, indexy jsou prepinace, hodnoty jsou jejich argumenty
+  typeset -A CONFIG                 # asociativni pole pro konfiguracni promenne, indexy jsou prepinace, hodnoty jsou jejich argumenty
   CONFIG["t"]="[%Y-%m-%d %H:%M:%S]" # timestamp format
   CONFIG["X"]="max"                 # maximum x-axis value
   CONFIG["x"]="min"                 # minimum X-axis value
@@ -688,24 +718,18 @@ function readConfig()
   shift `expr $OPTIND - 1`	# posun na prikazove radce
   if [[ $VERBOSE -eq 1 ]] 
   then
-    verbose "processed switches ${SWITCHES[@]}"
+    verbose "processed switches ${SWITCHES[@]}"         # report processed switches
 
-    #for i in "${!CONFIG[@]}"
     for i in "${SWITCHES[@]}"
     do
-      verbose "value of the switch -$i ${CONFIG["$i"]}"
+      verbose "value of the switch -$i ${CONFIG["$i"]}" # report values of all entered switches
     done
   fi
 
+  [[ "${CONFIG["f"]}" != "" ]] && readConfig "${CONFIG["f"]}"   # read the configuration file
 
-#  [[ "${CONFIG["f"]}" != "" ]] && readConfig "${CONFIG["f"]}"
-  #[[ "$CONFIG" -ne 0 ]] && readConfig "$CONFIG"
-  #[[ "$CONFIG" != "0" ]] && readConfig "$CONFIG"
-
-  checkFiles "$@"           # kontrola datovych souboru, at to neni nutne delat nekdy pozdeji
-  [[ $VERBOSE -eq 1 ]] && verbose "data files ${DATA[@]}"
-
-# pokud je definovan verbose, tak vypsat vsechny zpracovane prepinace a datove soubory
+  checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
+  [[ $VERBOSE -eq 1 ]] && verbose "data files ${DATA[@]}"   # report data files
 
 
 
