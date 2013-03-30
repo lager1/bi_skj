@@ -319,7 +319,6 @@ function checkFiles()
       
       if [[ "$?" -eq 0 ]]       # check return code
       then
-        #[[ $VERBOSE -eq 1 ]] && verbose "file \"$i\" downloaded as \"$tmp\""
         verbose "file \"$i\" downloaded as \"$tmp\""
         DATA[$((data_idx++))]="$tmp"  # provided data file is ok
       else
@@ -343,50 +342,48 @@ function checkFiles()
 # kontrola poctu zaznamu -> pokud mame vice souboru, tak nas zajima, zda kreslime do jednoho grafu vice krivek
   if [[ $# -gt 1 ]]
   then
+
+    local words=$(head -1 ${DATA[0]} | wc -w)
+    local cols
+    local ret
+
+    for((j = 1; j < "$words"; j++))
+    do
+      cols=$(echo "${cols}${j},")     # add column number
+    done
+
+    cols=$(echo "${cols%,}")          # cut off the first , from the left
+
+    echo "words: $words"
+    echo "cols: $cols"
+
     for i in "${DATA[@]}"
     do
-      [[ $(wc -l < "${DATA[0]}") -ne $(wc -l < "$i") ]] && MULTIPLOT="false"
+      [[ $(wc -l < "${DATA[0]}") -ne $(wc -l < "$i") ]] && { MULTIPLOT="false"; return; }
       
 
       # na toto se jeste poptat, zda je implicitne timeformat a hodnota oddelena mezerou
       # dale, muze byt vice hodnot pro jeden casovy udaj v jednom souboru ?
       
       # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
-      local words=$(head -1 ${DATA[0]} | wc -w)
-      local cols=""
-      local timestamps
-      echo "$words"
 
-      for((j = 1; j < "$words"; j++))
-      do
-        cols=$(echo "${cols}${j},")
-      done
+      #ret=(diff <(cat ${DATA[0]} | cut -d" " -f ${cols}) <(cat $i | cut -d" " -f ${cols}))
+      #ret=$(diff <(cat ${DATA[0]} | cut -d" " -f ${cols}) <(cat $i | cut -d" " -f ${cols}))
+      #echo "ret: $ret"
+      #[[ diff <(cat ${DATA[0]} | cut -d" " -f ${cols}) <(cat $i | cut -d" " -f ${cols}) ]] && { echo "diff"; MULTIPLOT="false"; return; }
 
-      cols=$(echo "${cols%,}")
-
-      echo "$cols"
-      #[[ diff <() <() ]] && { MULTIPLOT}
+      # head ${DATA[0]} | cut -d " " -f$cols
 
     done
   fi
   
   # kontrola stejnych casovych udaju
-  
-
 
   MULTIPLOT="true"
 
-
   echo "MULTIPLOT: $MULTIPLOT"
 
-
-
-
-
-
 }
-
-
 
 
 # predelano -> staci kdyz bude vracet pouze true/false
@@ -684,19 +681,6 @@ function readConfig()
   
   
   
- # TIMEFORM="[%Y-%m-%d %H:%M:%S]"
- # XMAX="max"
- # XMIN="min"
- # YMAX="auto"
- # YMIN="auto"
- # SPEED=1
- # DURATION=0
- # FPS=25
- # typeset -a GNUPLOTPARAMS 	# pole
- # typeset -a EFECTPARAMS	# pole
- # ERRORS="true"				# true
- # LEGEND=0
- # NAME=0
   typeset -a SWITCHES       # pole, zapiseme jake prepinace jsme zpracovali
   typeset -a DATA			# pole obsahujici soubory s daty
   typeset -a TEMPFILES		# docasne soubory
