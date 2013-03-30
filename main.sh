@@ -94,6 +94,8 @@
 #-------------------------------------------------------------------------------
 function verbose()
 {
+  (($VERBOSE)) || return
+  
   echo -n "VERBOSE: "
 
   for i in "$@"
@@ -317,7 +319,8 @@ function checkFiles()
       
       if [[ "$?" -eq 0 ]]       # check return code
       then
-        [[ $VERBOSE -eq 1 ]] && verbose "file \"$i\" downloaded as \"$tmp\""
+        #[[ $VERBOSE -eq 1 ]] && verbose "file \"$i\" downloaded as \"$tmp\""
+        verbose "file \"$i\" downloaded as \"$tmp\""
         DATA[$((data_idx++))]="$tmp"  # provided data file is ok
       else
         st=$(wget -O "$tmp" "$i" 2>&1)
@@ -362,7 +365,7 @@ function checkFiles()
       cols=$(echo "${cols%,}")
 
       echo "$cols"
-      [[ diff <() <() ]] && { MULTIPLOT}
+      #[[ diff <() <() ]] && { MULTIPLOT}
 
     done
   fi
@@ -710,20 +713,18 @@ function readConfig()
 #-------------------------------------------------------------------------------
   readParams "$@"
   shift `expr $OPTIND - 1`	# posun na prikazove radce
-  if [[ $VERBOSE -eq 1 ]] 
-  then
-    verbose "processed switches ${SWITCHES[@]}"         # report processed switches
 
-    for i in "${SWITCHES[@]}"
-    do
-      verbose "value of the switch -$i ${CONFIG["$i"]}" # report values of all entered switches
-    done
-  fi
+  verbose "processed switches ${SWITCHES[@]}"         # report processed switches
+
+  for i in "${SWITCHES[@]}"
+  do
+    verbose "value of the switch -$i ${CONFIG["$i"]}" # report values of all entered switches
+  done
 
   [[ "${CONFIG["f"]}" != "" ]] && readConfig "${CONFIG["f"]}"   # read the configuration file
 
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
-  [[ $VERBOSE -eq 1 ]] && verbose "data files ${DATA[@]}"   # report data files
+  verbose "data files ${DATA[@]}"   # report data files
 
 
 
