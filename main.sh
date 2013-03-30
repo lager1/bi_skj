@@ -342,34 +342,27 @@ function checkFiles()
   then
     for i in "${DATA[@]}"
     do
-      #[[ $(wc -l "${DATA[0]}" | cut -d" " -f1) -ne $(wc -l "$i" | cut -d" " -f1) ]] && MULTIPLOT="false"
       [[ $(wc -l < "${DATA[0]}") -ne $(wc -l < "$i") ]] && MULTIPLOT="false"
       
 
       # na toto se jeste poptat, zda je implicitne timeformat a hodnota oddelena mezerou
       # dale, muze byt vice hodnot pro jeden casovy udaj v jednom souboru ?
       
-      #[[ $(cat "${DATA[0]}" | cut -d"${CONFIG["t"]}" -f1-)]]
       # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
-      #[[ $(cat "${DATA[0]}" | awk '{print $NF}')]]
-      #[[ $(cat "${DATA[0]}" | cut -d"${CONFIG["t"]}" -f1-) != $(cat "$i" | cut -d"${CONFIG["t"]}" -f1-) ]] && MULTIPLOT="false" #
       local words=$(head -1 ${DATA[0]} | wc -w)
+      local cols=""
+      local timestamps
       echo "$words"
-      #a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" " } { for(i = 1; i < words; i++) print $i,; }' | head)
-      #a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" " } { for(i = 1; i < words; i++) print; }' | head)
-      #a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" "; output = ""} { for(i = 1; i < words; i++) ouput += "$i," } END { print output }' | head)
-      
-      
-      
-      a=$(cat "${DATA[0]}" | awk -v words="$words" 'BEGIN { OFS=" "; ORS=" "} { for(i = 1; i < words; i++) print $i } END { print output }' | head)
-      #a=$(cat "${DATA[0]}" | awk -v words="$words" '{ for(i = 1; i < words; i++) print $i }' | head)
-      
-      
-      
-      #a=$(cat "${DATA[0]}" | awk '{print $NF}')
-    
-      echo "$a"
 
+      for((j = 1; j < "$words"; j++))
+      do
+        cols=$(echo "${cols}${j},")
+      done
+
+      cols=$(echo "${cols%,}")
+
+      echo "$cols"
+      [[ diff <() <() ]] && { MULTIPLOT}
 
     done
   fi
