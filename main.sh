@@ -346,6 +346,8 @@ function checkFiles()
     local words=$(head -1 ${DATA[0]} | wc -w)
     local cols
     local ret
+    local t1
+    local t2
 
     for((j = 1; j < "$words"; j++))
     do
@@ -367,18 +369,15 @@ function checkFiles()
       
       # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
 
-      #ret=(diff <(cat ${DATA[0]} | cut -d" " -f ${cols}) <(cat $i | cut -d" " -f ${cols}))
-      #ret=$(diff <(cat ${DATA[0]} | cut -d" " -f ${cols}) <(cat $i | cut -d" " -f ${cols}))
-      #echo "ret: $ret"
-      #[[ diff <(cat ${DATA[0]} | cut -d" " -f ${cols}) <(cat $i | cut -d" " -f ${cols}) ]] && { echo "diff"; MULTIPLOT="false"; return; }
+      ret=$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}))
+      #[[ $(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null) -ne 0 ]] && { echo "diff"; MULTIPLOT="false"; return; }
 
-      # head ${DATA[0]} | cut -d " " -f$cols
+      [[ "$ret" != "" ]] && { echo "diff"; MULTIPLOT="false"; return; }
+
 
     done
   fi
   
-  # kontrola stejnych casovych udaju
-
   MULTIPLOT="true"
 
   echo "MULTIPLOT: $MULTIPLOT"
@@ -705,6 +704,7 @@ function readConfig()
     verbose "value of the switch -$i ${CONFIG["$i"]}" # report values of all entered switches
   done
 
+  # tuhle podminku dat mozna primo do samotne funkce ?
   [[ "${CONFIG["f"]}" != "" ]] && readConfig "${CONFIG["f"]}"   # read the configuration file
 
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
@@ -712,4 +712,5 @@ function readConfig()
 
 
 
+  echo "MULTIPLOT: $MULTIPLOT"
 
