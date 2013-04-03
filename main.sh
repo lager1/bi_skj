@@ -56,6 +56,12 @@
 # -> error uzivateli, spatny format dat
 
 
+# otazka na konfiguracni soubor:
+# text začínající znakem # představuje komentář až do konce řádku.
+# ==> takze pokud zacina text mezerou(nebo cimkoliv jinym) a nasleduje # tak to je komentar ?
+# z prikladu to ale vypada, ze komentar je cokoliv od znaku # !!!!
+
+
 
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ j=0
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ sw[$((j++))]="retezec"
@@ -163,12 +169,27 @@ function readParams()
 
       X) # XMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -X was not provided"
+		 
+         # TADY JESTE DODELAT KONTRENI HODNOTU !!!
+         # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
+         
+         
+         ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
+		   error "wrong argument of the switch -X"; }
          SWITCHES[$((switches_idx++))]="X"	# save the processed switch
          CONFIG["X"]="$OPTARG"
 		 XMAX="$OPTARG";; # save the argument of the switch
       
       x) # XMIN 
 		 [ -z "$OPTARG" ] && error "the value of the switch -x was not provided"
+
+         # TADY JESTE DODELAT KONTRENI HODNOTU !!!
+         # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
+         
+
+
+		 ! [[ "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
+		   error "wrong argument of the switch -x"; }
          SWITCHES[$((switches_idx++))]="x"	# save the processed switch
          CONFIG["x"]="$OPTARG"
 		 XMIN="$OPTARG";; # save the argument of the switch
@@ -456,23 +477,43 @@ function readConfig()
 #
 #
 #
-#       JESTE KONTROLA, ZDA CTEME VSECHNY DEFINOVANE DIREKTIVY - PREPINACE
+#       JESTE KONTROLA, ZDA CTEME VSECHNY V ZADANI DEFINOVANE DIREKTIVY - PREPINACE
 #
 
 
-  if ! [[ "${SWITCHES[@]}" =~ t ]]	# zkoumame, zda jsme prepinac zpracovali
+  local ret
+  # variable for checking values of the configuration directives
+
+
+  if ! [[ "${SWITCHES[@]}" =~ t ]]	# check if this particular switch was processed on command line
   then
 
-    echo "hm"
     # znak # predstavuje komentar az do konce radku
     # prazdne radky jsou nevyznamne, stejne tak jako radky obsahujici pouze mezery a taby
+    # na jednom radku maximalne jedna direktiva             ==== JAK TO RESIT ?????
     
     
-    sed -n '/^[^#]*TimeFormat/Ip' "$1"
+    
+    #sed -n '/^[^#].*TimeFormat/Ip' "$1"
+    #sed -n '/^[^#].*TimeFormat/Ip; s/^.*TimeFormat/TimeFormat/' "$1"
+    #sed -n '/^[^#].*TimeFormat/Ip' "$1" | sed 's/^.*TimeFormat/TimeFormat/; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //'
 
 
 
 
+    sed -n '/^[^#].*TimeFormat/Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p'
+
+
+
+
+    # nezacina znakem #, pak je cokoliv, pak TimeFormat
+    # hodnota a direktiva jsou oddeleny pomoci mezery, tabulatoru pripadne jejich kombinaci
+
+    #[[ $( -n '/^[^#].*TimeFormat/Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p') ]]
+    # kontrola hodnoty - jak na to v tomto pripade?
+
+
+    # nejaky drivejsi balast
 
   #  [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /TimeFormat/' | wc -l` -gt 1 ] && 
   #  { echo "direktiva TimeFormat je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
@@ -480,45 +521,100 @@ function readConfig()
   #	! [[ $TMP =~ ^$ ]] && TIMEFORM=$TMP	# ok, direktiva je evedena
   fi
   
+  
+  # ==================================
+  
+  #XMAX
+
+  if ! [[ "${SWITCHES[@]}" =~ X ]]	# check if this particular switch was processed on command line
+  then
+    ret=$(sed -n '/^[^#].*Xmax/Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; $p')
+
+    ! [[ "$ret" == "auto" || "$ret" == "max" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
+      error "wrong argument of the Xmax directive in configuration file \"$1\""; }
+
+  fi
+  
+  # ==================================
+
+  #XMIN
+
+  if ! [[ "${SWITCHES[@]}" =~ x ]]	# check if this particular switch was processed on command line
+  then
+    ret=$(sed -n '/^[^#].*Xmin/Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; $p')
+
+    ! [[ "$ret" == "auto" || "$ret" == "min" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
+      error "wrong argument of the Xmin directive in configuration file \"$1\""; }
+
+  fi
+  
+  
+
+
+  # ==================================
+  # ==================================
+
 
   # YMAX
-  # jedna hodnota ~ jedno slovo
-  if ! [[ "${SWITCHES[@]}" =~ Y ]]	# zkoumame, zda jsme prepinac zpracovali
+  if ! [[ "${SWITCHES[@]}" =~ Y ]]	# check if this particular switch was processed on command line
   then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymax/' | wc -l` -gt 1 ] && 
-    { echo "direktiva Ymax je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Ymax/' | wc -w` -gt 2 ] && 
-    { echo "direktiva Ymax v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-      TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymax/ {print $2}'`
-    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-    then
-      if [[ ! $TMP =~ ^-?[0-9]+$ && ! $TMP =~ ^-?[0-9]+\.[0-9]+$ && ! $TMP == "auto" && ! $TMP == "max" ]]		# ma spatny format
-      then
-        echo "spatny format direktivy Ymax v zadanem konfiguracnim souboru"
-        exit 1;
-      fi
-      YMAX=$TMP	# ok, direktiva je evedena a ma spravny format
-    fi
+
+
+   #ret=$(sed -n '/^[^#].*Ymax/Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; $p')
+   # tady se to chova nejak divne, proc ??
+
+   #ret=$(sed -n '/^[^#].*Ymax/Ip' "$1")
+   #ret=$(sed -n '/^[^#]?.*Ymax/Ip' "$1") # -> cokoliv krome hashe nemusi na zacatku byt !! -> radek muze zacinat samotnou direktivou
+   ret=$(sed -n '/.*Ymax/Ip' "$1") 
+
+   echo "ret: $ret"
+
+   # ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+   #   error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+
+
+    # nejaky drivejsi balast
+
+
+#    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymax/' | wc -l` -gt 1 ] && 
+#    { echo "direktiva Ymax je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+#    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Ymax/' | wc -w` -gt 2 ] && 
+#    { echo "direktiva Ymax v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
+#      TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymax/ {print $2}'`
+#    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+#    then
+#      if [[ ! $TMP =~ ^-?[0-9]+$ && ! $TMP =~ ^-?[0-9]+\.[0-9]+$ && ! $TMP == "auto" && ! $TMP == "max" ]]		# ma spatny format
+#      then
+#        echo "spatny format direktivy Ymax v zadanem konfiguracnim souboru"
+#        exit 1;
+#      fi
+#      YMAX=$TMP	# ok, direktiva je evedena a ma spravny format
+#    fi
   fi
 
   # YMIN
-  # jedna hodnota ~ jedno slovo
-  if ! [[ "${SWITCHES[@]}" =~ y ]]	# zkoumame, zda jsme prepinac zpracovali
+  if ! [[ "${SWITCHES[@]}" =~ y ]]	# check if this particular switch was processed on command line
   then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymin/' | wc -l` -gt 1 ] && 
-    { echo "direktiva Ymin je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Ymin/' | wc -w` -gt 2 ] && 
-    { echo "direktiva Ymin v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymin/ {print $2}'`
-    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-    then
-      if [[ ! $TMP =~ ^-?[0-9]+$ && ! $TMP =~ ^-?[0-9]+\.[0-9]+$ && ! $TMP == "auto" && ! $TMP == "min" ]]		# ma spatny format
-      then
-        echo "spatny format direktivy Ymin v zadanem konfiguracnim souboru"
-        exit 1;
-      fi
-      YMIN=$TMP	# ok, direktiva je evedena a ma spravny format
-    fi
+
+    ret=$(sed -n '/^[^#].*Ymin/Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; $p')
+
+
+  # nejaky drivejsi balast
+
+ #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymin/' | wc -l` -gt 1 ] && 
+ #   { echo "direktiva Ymin je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+ #   [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Ymin/' | wc -w` -gt 2 ] && 
+ #   { echo "direktiva Ymin v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
+ #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymin/ {print $2}'`
+ #   if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+ #   then
+ #     if [[ ! $TMP =~ ^-?[0-9]+$ && ! $TMP =~ ^-?[0-9]+\.[0-9]+$ && ! $TMP == "auto" && ! $TMP == "min" ]]		# ma spatny format
+ #     then
+ #       echo "spatny format direktivy Ymin v zadanem konfiguracnim souboru"
+ #       exit 1;
+ #     fi
+ #     YMIN=$TMP	# ok, direktiva je evedena a ma spravny format
+ #   fi
   fi
 
   # SPEED
