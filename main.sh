@@ -105,11 +105,11 @@ function verbose()
 {
   (($VERBOSE)) || return
   
-  echo -n "VERBOSE: "
+  echo -en "\e[1;32mVERBOSE: \e[0m"     # print in green color
 
   for i in "$@"
   do
-    echo -n "$i "
+    echo -en "\e[1;32m$i \e[0m"       # print in green color 
   done
   echo ""
 }
@@ -124,10 +124,10 @@ function error()
 {
   for i in "$@"
   do
-    echo -e "ERROR: $i" >&2
+    echo -e "\e[1;31mERROR: $i\e[0m" >&2    # print in red color
   done
 
-  echo "exitting"
+  echo -e "\e[1;31mexitting\e[0m" >&2    # print in red color
 
   exit 1;
 }
