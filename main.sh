@@ -486,8 +486,9 @@ function readConfig()
 
     ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
       error "wrong argument of the Ymax directive in configuration file \"$1\""; }
-    
-    verbose "value of the configuration directive Ymax $ret"
+
+    CONFIG["Y"]="$ret"
+    verbose "value of the configuration directive Ymax: $ret"
 
   fi
 
@@ -497,10 +498,12 @@ function readConfig()
   then
 
     ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/[[:space:]]*#.*$//; $p')
-    echo "YMIN:: ret: $ret"
 
-    # ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
-    #   error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
+      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+    
+    CONFIG["y"]="$ret"
+    verbose "value of the configuration directive Ymin: $ret"
 
   fi
 
@@ -510,13 +513,11 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
-    echo "SPEED:: ret: $ret"
-
-
-    # ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-    #   error "wrong argument of the Ymax directive in configuration file \"$1\""; }
-
-
+    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+    
+    CONFIG["S"]="$ret"
+    verbose "value of the configuration directive Speed: $ret"
 
   # nejaky drivejsi balast
  #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -l` -gt 1 ] && 
@@ -540,9 +541,12 @@ function readConfig()
   if ! [[ "${SWITCHES[@]}" =~ T ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
+    
+    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
 
-    echo "TIME:: ret: $ret"
-
+    CONFIG["T"]="$ret"
+    verbose "value of the configuration directive Time: $ret"
 
   # nejaky drivejsi balast
 #    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Time /' | wc -l` -gt 1 ] && 
@@ -569,9 +573,11 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
-    echo "FPS:: ret: $ret"
-   
-    
+    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+
+    CONFIG["F"]="$ret"
+    verbose "value of the configuration directive FPS: $ret"
 
 
   # nejaky drivejsi balast
@@ -769,7 +775,7 @@ function readConfig()
 
   for i in "${SWITCHES[@]}"
   do
-    verbose "value of the switch -$i ${CONFIG["$i"]}" # report values of all entered switches
+    verbose "value of the switch -$i: ${CONFIG["$i"]}" # report values of all entered switches
   done
 
   readConfig "${CONFIG["f"]}"   # read the configuration file
