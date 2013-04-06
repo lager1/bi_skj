@@ -400,60 +400,6 @@ function checkFiles()
 }
 
 
-# predelano -> staci kdyz bude vracet pouze true/false
-
-
-#-------------------------------------------------------------------------------
-# funkce pro kontrolu, zda je jsme zpracovali zadany prepinac
-# parametry:
-#	1) prepinac, ktery kontrolujeme
-# navratova hodnota: cislo, ktere rika, kolikrat byl dany prepinac
-# (direktiva v konfiguracnim souboru) zpracovan
-#-------------------------------------------------------------------------------
-
-
-
-
-#-------------------------------------------------------------------------------
-# funkce pro kontrolu, zda je jsme zpracovali zadany prepinac
-# parametry:
-#	1) prepinac, ktery kontrolujeme
-# navratova hodnota -> 1 ==> prepinac jsme zpracovali
-#                      0 ==> prepinac jsme nezpracovali
-
-
-
-# pokud bychom meli nekolik konfiguracnich souboru, tak by mohl byt problem
-# -> nedostali bychom posledni hodnotu
-# -> konfiguracni soubor muze byt pouze jeden -> posledni zadany na prikazove radce
-
-
-# navratova hodnota: cislo, ktere rika, kolikrat byl dany prepinac
-# (direktiva v konfiguracnim souboru) zpracovan
-#-------------------------------------------------------------------------------
-function checkSwitch()
-{
-#  echo "kontrola parametru $1"
-
-  for i in ${SWITCHES[@]}
-  do
-#    echo "i: $i"
-
-    #[[ "$i" == "$1" ]] && return 1;
-    #[[ $i == $1 ]] && return "1";
-    [[ $i == $1 ]] && exit 1
-  done
-  #return 0;
-  return 0
-  #exit 0;
-  #exit 0
-}
-
-
-# funkce checkSwitch neni ve vysledku potreba, pokud neprijdu na to, jak ji volat v podmince a zaroven dostat navratovou hodnotu
-
-
-
 #-------------------------------------------------------------------------------
 # fucntion for reading the configuration file
 # parameters:
