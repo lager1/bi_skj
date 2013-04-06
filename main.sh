@@ -456,6 +456,8 @@ function readConfig()
 
     echo "XMAX:: ret: $ret"
 
+    # TOTO PREDELAT ---> "RET" == "" JE NESMYSL !!!
+
     #! [[ "$ret" == "auto" || "$ret" == "max" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
     #  error "wrong argument of the Xmax directive in configuration file \"$1\""; }
 
@@ -470,6 +472,8 @@ function readConfig()
 
     echo "XMIN:: ret: $ret"
 
+    # TOTO PREDELAT ---> "RET" == "" JE NESMYSL !!!
+
     #! [[ "$ret" == "auto" || "$ret" == "min" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
     #  error "wrong argument of the Xmin directive in configuration file \"$1\""; }
 
@@ -482,14 +486,15 @@ function readConfig()
     
     ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; s/[[:space:]]*#.*$//; $p')
     
-    echo "YMAX:: ret: $ret"
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
+    
+      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+        error "wrong argument of the Ymax directive in configuration file \"$1\""; }
 
-    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
-
-    CONFIG["Y"]="$ret"
-    verbose "value of the configuration directive Ymax: $ret"
-
+      CONFIG["Y"]="$ret"
+      verbose "value of the configuration directive Ymax: $ret"
+    fi
   fi
 
   # ==================================
@@ -499,12 +504,15 @@ function readConfig()
 
     ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/[[:space:]]*#.*$//; $p')
 
-    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
-      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
-    
-    CONFIG["y"]="$ret"
-    verbose "value of the configuration directive Ymin: $ret"
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
 
+      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
+        error "wrong argument of the Ymin directive in configuration file \"$1\""; }
+      
+      CONFIG["y"]="$ret"
+      verbose "value of the configuration directive Ymin: $ret"
+    fi
   fi
 
   # ==================================
@@ -513,27 +521,15 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
-    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
-    
-    CONFIG["S"]="$ret"
-    verbose "value of the configuration directive Speed: $ret"
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
 
-  # nejaky drivejsi balast
- #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -l` -gt 1 ] && 
- #   { echo "direktiva Speed je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
- #   [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -w` -gt 2 ] && 
- #   { echo "direktiva Speed v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
- #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/ {print $2}'`
- #   if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
- #   then
- #     if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
- #     then
- #       echo "spatny format direktivy Speed v zadanem konfiguracnim souboru"
- #       exit 1;
- #     fi
- #     SPEED=$TMP	# ok, direktiva je evedena a ma spravny format
- #   fi
+      ! [[ "$ret" =~ ^[0-9]+$ || "$ret" =~ ^[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+        error "wrong argument of the Speed directive in configuration file \"$1\""; }
+      
+      CONFIG["S"]="$ret"
+      verbose "value of the configuration directive Speed: $ret"
+    fi
   fi
 
   # ==================================
@@ -542,29 +538,15 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
     
-    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
 
-    CONFIG["T"]="$ret"
-    verbose "value of the configuration directive Time: $ret"
+      ! [[ "$ret" =~ ^[0-9]+$ || "$ret" =~ ^[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+        error "wrong argument of the Time directive in configuration file \"$1\""; }
 
-  # nejaky drivejsi balast
-#    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Time /' | wc -l` -gt 1 ] && 
-#    { echo "direktiva Time je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-#    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Time /' | wc -w` -gt 2 ] && 
-#    { echo "direktiva Time v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-#    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Time / {print $2}'`
-#    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-#    then
-#      if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
-#      then
-#        echo "spatny format direktivy Time v zadanem konfiguracnim souboru"
-#        exit 1;
-#      fi
-#      DURATION=$TMP	# ok, direktiva je evedena a ma spravny format
-#	  SWITCHES[$switches_idx]="T"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-#	  ((switches_idx++))
-#    fi
+      CONFIG["T"]="$ret"
+      verbose "value of the configuration directive Time: $ret"
+    fi
   fi
 
   # ==================================
@@ -573,28 +555,15 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
-    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
 
-    CONFIG["F"]="$ret"
-    verbose "value of the configuration directive FPS: $ret"
+      ! [[ "$ret" =~ ^[0-9]+$ || "$ret" =~ ^[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+        error "wrong argument of the FPS directive in configuration file \"$1\""; }
 
-
-  # nejaky drivejsi balast
-#    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /FPS/' | wc -l` -gt 1 ] && 
-#    { echo "direktiva FPS je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-#    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /FPS/' | wc -w` -gt 2 ] && 
-#    { echo "direktiva FPS v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-#    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /FPS/ {print $2}'`
-#    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-#    then
-#	  if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
-#	  then
-#	    echo "spatny format direktivy FPS v zadanem konfiguracnim souboru"
-#	    exit 1;
-#	  fi
-#	  FPS=$TMP	# ok, direktiva je evedena a ma spravny format
-#    fi
+      CONFIG["F"]="$ret"
+      verbose "value of the configuration directive FPS: $ret"
+    fi
   fi
 
   # ==================================
@@ -614,18 +583,11 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; s/[[:space:]]*#.*$//; $p')
   
-    echo "LEGEND:: ret: $ret"
-  
- # then
- #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Legend/' | wc -l` -gt 1 ] && 
- #   { echo "direktiva Legend je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
- #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Legend/' | sed 's/Legend //'`
- #   if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
- #   then
- #     LEGEND=$TMP	# ok, direktiva je evedena a ma spravny format
- #     SWITCHES[$switches_idx]="l"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
- #     ((switches_idx++))
- #   fi
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
+      CONFIG["l"]="$ret"
+      verbose "value of the configuration directive Legend: $ret"
+    fi
   fi
 
   # ==================================
@@ -687,20 +649,11 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; s/[[:space:]]*#.*$//; $p')
   
-    echo "NAME:: ret: $ret"
-  
-  
- # if ! [[ "${SWITCHES[@]}" =~ n ]]	# zkoumame, zda jsme prepinac zpracovali
- # then
- #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Name/' | wc -l` -gt 1 ] && 
- #   { echo "direktiva Legend je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
- #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Name/ {print $2}'`
- #   if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
- #   then
- #     NAME=$TMP	# ok, direktiva je evedena a ma spravny format
- #     SWITCHES[$switches_idx]="n"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
- #     ((switches_idx++))
- #   fi
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
+      CONFIG["n"]="$ret"
+      verbose "value of the configuration directive Name: $ret"
+    fi
   fi
   
   # ==================================
