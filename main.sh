@@ -62,6 +62,9 @@
 # z prikladu to ale vypada, ze komentar je cokoliv od znaku # !!!!
 
 
+# jak se zachovat v pripade, ze je na radce zadan prepinac u ktereho je pripustnych vice vyskytu a zaroven bude zadana odpovidajici direktiva v konfiguracnim souboru
+
+
 
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ j=0
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ sw[$((j++))]="retezec"
@@ -501,7 +504,7 @@ function readConfig()
 
 
 
-    sed -n '/^[^#].*TimeFormat/Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p'
+    sed -n '/^[^#].*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p'
 
 
 
@@ -511,24 +514,15 @@ function readConfig()
 
     #[[ $( -n '/^[^#].*TimeFormat/Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p') ]]
     # kontrola hodnoty - jak na to v tomto pripade?
-
-
-    # nejaky drivejsi balast
-
-  #  [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /TimeFormat/' | wc -l` -gt 1 ] && 
-  #  { echo "direktiva TimeFormat je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-  #	TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /TimeFormat/' | sed 's/TimeFormat //'`
-  #	! [[ $TMP =~ ^$ ]] && TIMEFORM=$TMP	# ok, direktiva je evedena
   fi
   
   
   # ==================================
-  
   #XMAX
-
+  # DOPLNIT KONKRETNI HODNOTY !!!
   if ! [[ "${SWITCHES[@]}" =~ X ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#].*Xmax/Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; $p')
+    ret=$(sed -n '/^[^#].*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; $p')
 
     ! [[ "$ret" == "auto" || "$ret" == "max" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
       error "wrong argument of the Xmax directive in configuration file \"$1\""; }
@@ -536,36 +530,28 @@ function readConfig()
   fi
   
   # ==================================
-
   #XMIN
-
+  # DOPLNIT KONKRETNI HODNOTY !!!
   if ! [[ "${SWITCHES[@]}" =~ x ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#].*Xmin/Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; $p')
+    ret=$(sed -n '/^[^#].*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; $p')
 
     ! [[ "$ret" == "auto" || "$ret" == "min" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
       error "wrong argument of the Xmin directive in configuration file \"$1\""; }
 
   fi
-  
-  
-
 
   # ==================================
-  # ==================================
-
-
   # YMAX
   if ! [[ "${SWITCHES[@]}" =~ Y ]]	# check if this particular switch was processed on command line
   then
 
-
-   #ret=$(sed -n '/^[^#].*Ymax/Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; $p')
+   #ret=$(sed -n '/^[^#].*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; $p')
    # tady se to chova nejak divne, proc ??
 
-   #ret=$(sed -n '/^[^#].*Ymax/Ip' "$1")
-   #ret=$(sed -n '/^[^#]?.*Ymax/Ip' "$1") # -> cokoliv krome hashe nemusi na zacatku byt !! -> radek muze zacinat samotnou direktivou
-   ret=$(sed -n '/.*Ymax/Ip' "$1") 
+   #ret=$(sed -n '/^[^#].*Ymax /Ip' "$1")
+   #ret=$(sed -n '/^[^#]?.*Ymax /Ip' "$1") # -> cokoliv krome hashe nemusi na zacatku byt !! -> radek muze zacinat samotnou direktivou
+   ret=$(sed -n '/.*Ymax /Ip' "$1") 
 
    echo "ret: $ret"
 
@@ -573,202 +559,206 @@ function readConfig()
    #   error "wrong argument of the Ymax directive in configuration file \"$1\""; }
 
 
-    # nejaky drivejsi balast
-
-
-#    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymax/' | wc -l` -gt 1 ] && 
-#    { echo "direktiva Ymax je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-#    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Ymax/' | wc -w` -gt 2 ] && 
-#    { echo "direktiva Ymax v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-#      TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymax/ {print $2}'`
-#    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-#    then
-#      if [[ ! $TMP =~ ^-?[0-9]+$ && ! $TMP =~ ^-?[0-9]+\.[0-9]+$ && ! $TMP == "auto" && ! $TMP == "max" ]]		# ma spatny format
-#      then
-#        echo "spatny format direktivy Ymax v zadanem konfiguracnim souboru"
-#        exit 1;
-#      fi
-#      YMAX=$TMP	# ok, direktiva je evedena a ma spravny format
-#    fi
   fi
 
+  # ==================================
   # YMIN
   if ! [[ "${SWITCHES[@]}" =~ y ]]	# check if this particular switch was processed on command line
   then
 
-    ret=$(sed -n '/^[^#].*Ymin/Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; $p')
+    ret=$(sed -n '/^[^#].*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; $p')
+
+  fi
+
+  # ==================================
+  # SPEED
+  if ! [[ "${SWITCHES[@]}" =~ S ]]	# check if this particular switch was processed on command line
+  then
+    ret=$(sed -n '/^[^#].*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; $p')
 
 
   # nejaky drivejsi balast
-
- #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymin/' | wc -l` -gt 1 ] && 
- #   { echo "direktiva Ymin je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
- #   [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Ymin/' | wc -w` -gt 2 ] && 
- #   { echo "direktiva Ymin v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
- #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Ymin/ {print $2}'`
+ #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -l` -gt 1 ] && 
+ #   { echo "direktiva Speed je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+ #   [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -w` -gt 2 ] && 
+ #   { echo "direktiva Speed v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
+ #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/ {print $2}'`
  #   if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
  #   then
- #     if [[ ! $TMP =~ ^-?[0-9]+$ && ! $TMP =~ ^-?[0-9]+\.[0-9]+$ && ! $TMP == "auto" && ! $TMP == "min" ]]		# ma spatny format
+ #     if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
  #     then
- #       echo "spatny format direktivy Ymin v zadanem konfiguracnim souboru"
+ #       echo "spatny format direktivy Speed v zadanem konfiguracnim souboru"
  #       exit 1;
  #     fi
- #     YMIN=$TMP	# ok, direktiva je evedena a ma spravny format
+ #     SPEED=$TMP	# ok, direktiva je evedena a ma spravny format
  #   fi
   fi
 
-  # SPEED
-  # jedna hodnota ~ jedno slovo
-  if ! [[ "${SWITCHES[@]}" =~ S ]]	# zkoumame, zda jsme prepinac zpracovali
-  then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -l` -gt 1 ] && 
-    { echo "direktiva Speed je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -w` -gt 2 ] && 
-    { echo "direktiva Speed v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/ {print $2}'`
-    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-    then
-      if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
-      then
-        echo "spatny format direktivy Speed v zadanem konfiguracnim souboru"
-        exit 1;
-      fi
-      SPEED=$TMP	# ok, direktiva je evedena a ma spravny format
-    fi
-  fi
-
+  # ==================================
   # DURATION
-  # jedna hodnota ~ jedno slovo
-  if ! [[ "${SWITCHES[@]}" =~ T ]]	# zkoumame, zda jsme prepinac zpracovali
+  if ! [[ "${SWITCHES[@]}" =~ T ]]	# check if this particular switch was processed on command line
   then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Time /' | wc -l` -gt 1 ] && 
-    { echo "direktiva Time je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Time /' | wc -w` -gt 2 ] && 
-    { echo "direktiva Time v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Time / {print $2}'`
-    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-    then
-      if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
-      then
-        echo "spatny format direktivy Time v zadanem konfiguracnim souboru"
-        exit 1;
-      fi
-      DURATION=$TMP	# ok, direktiva je evedena a ma spravny format
-	  SWITCHES[$switches_idx]="T"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((switches_idx++))
-    fi
+    ret=$(sed -n '/^[^#].*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; $p')
+
+#    echo "TIME ::: ret: $ret"
+
+
+  # nejaky drivejsi balast
+#    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Time /' | wc -l` -gt 1 ] && 
+#    { echo "direktiva Time je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+#    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /Time /' | wc -w` -gt 2 ] && 
+#    { echo "direktiva Time v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
+#    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Time / {print $2}'`
+#    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+#    then
+#      if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
+#      then
+#        echo "spatny format direktivy Time v zadanem konfiguracnim souboru"
+#        exit 1;
+#      fi
+#      DURATION=$TMP	# ok, direktiva je evedena a ma spravny format
+#	  SWITCHES[$switches_idx]="T"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+#	  ((switches_idx++))
+#    fi
   fi
 
+  # ==================================
   # FPS
-  # jedna hodnota ~ jedno slovo
-  if ! [[ "${SWITCHES[@]}" =~ F ]]	# zkoumame, zda jsme prepinac zpracovali
+  if ! [[ "${SWITCHES[@]}" =~ F ]]	# check if this particular switch was processed on command line
   then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /FPS/' | wc -l` -gt 1 ] && 
-    { echo "direktiva FPS je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /FPS/' | wc -w` -gt 2 ] && 
-    { echo "direktiva FPS v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /FPS/ {print $2}'`
-    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-    then
-	  if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
-	  then
-	    echo "spatny format direktivy FPS v zadanem konfiguracnim souboru"
-	    exit 1;
-	  fi
-	  FPS=$TMP	# ok, direktiva je evedena a ma spravny format
-    fi
+    ret=$(sed -n '/^[^#].*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; $p')
+  
+  
+  # nejaky drivejsi balast
+#    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /FPS/' | wc -l` -gt 1 ] && 
+#    { echo "direktiva FPS je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+#    [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /FPS/' | wc -w` -gt 2 ] && 
+#    { echo "direktiva FPS v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
+#    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /FPS/ {print $2}'`
+#    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+#    then
+#	  if ! [[ $TMP =~ ^[0-9]+$ || $TMP =~ ^[0-9]+\.[0-9]+$ ]]		# ma spatny format
+#	  then
+#	    echo "spatny format direktivy FPS v zadanem konfiguracnim souboru"
+#	    exit 1;
+#	  fi
+#	  FPS=$TMP	# ok, direktiva je evedena a ma spravny format
+#    fi
   fi
 
+  # ==================================
   # EFFECTPARAMS
   # direktiva muze byt uvedene vicekrat, kontrola neni potreba
-  [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /EffectParams/' | wc -w` -gt 2 ] && 
-  { echo "direktiva EffectParams obsahuje vice nez jedno klicove slovo"; exit 1; }    		# direktiva obsahuje vice klicovych slov
-  TMP=`cat $1 | grep ^[a-Z] | grep -i "EffectParams" | awk '{print $2}'`
-  TMP=`echo "$TMP" | tr ":" " "`	# zmena oddelovace na mezeru, abychom mohli iterovat
-  if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+  if ! [[ "${SWITCHES[@]}" =~ e ]]	# check if this particular switch was processed on command line
   then
-    A=0
-    for i in $TMP
-    do
-	   if ! [[ $i =~ ^bgcolor=.*$ || $i =~ ^changebgcolor$ || $i =~ ^changespeed=[1-5]$ ]]
-       then
-         echo "spatny format direktivy EffectParams v zadanem konfiguracnim souboru"
-         exit 1;
-      fi
-      EFFECTPARAMS[$A]=$i	# ok, uloz do pole
-      ((A++))
-    done
-    SWITCHES[$switches_idx]="e"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-    ((switches_idx++))
+    ret=$(sed -n '/^[^#].*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; $p')
+
+
+  #[ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /EffectParams/' | wc -w` -gt 2 ] && 
+  #{ echo "direktiva EffectParams obsahuje vice nez jedno klicove slovo"; exit 1; }    		# direktiva obsahuje vice klicovych slov
+  #TMP=`cat $1 | grep ^[a-Z] | grep -i "EffectParams" | awk '{print $2}'`
+  #TMP=`echo "$TMP" | tr ":" " "`	# zmena oddelovace na mezeru, abychom mohli iterovat
+  #if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+  #then
+  #  A=0
+  #  for i in $TMP
+  #  do
+  #     if ! [[ $i =~ ^bgcolor=.*$ || $i =~ ^changebgcolor$ || $i =~ ^changespeed=[1-5]$ ]]
+  #     then
+  #       echo "spatny format direktivy EffectParams v zadanem konfiguracnim souboru"
+  #       exit 1;
+  #    fi
+  #    EFFECTPARAMS[$A]=$i	# ok, uloz do pole
+  #    ((A++))
+  #  done
+  #  SWITCHES[$switches_idx]="e"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+  #  ((switches_idx++))
   fi
   
+  # ==================================
   # ERRORS
-  # jedna hodnota ~ jedno slovo
-  # prepinac neni implementovan -> nemusime kontrolovat, zda byl zpracovan
-  [ `cat $1 | grep ^[a-Z] | grep -i "IgnoreErrors" | wc -l` -gt 1 ] && 
-  { echo "direktiva IgnoreErrors je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-  [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /IgnoreErrors/' | wc -w` -gt 2 ] && 
-    { echo "direktiva IgnoreErrors v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
-  TMP=`cat $1 | grep ^[a-Z] | grep -i "IgnoreErrors" | awk '{print $2}'`
-  if ! [[ $TMP =~ ^$ ]]
+  if ! [[ "${SWITCHES[@]}" =~ E ]]	# check if this particular switch was processed on command line
   then
-	if ! [[ "$TMP" == "true" || "$TMP" == "false" ]]		# ma spatny format
-	then
-	  echo "spatny format direktivy IgnoreErrors v zadanem konfiguracnim souboru"
-	  echo "direktiva pripousti pouze hodnoty true, false"
-	  exit 1;
-	fi
-    ERRORS=$TMP	# ok, direktiva je evedena a ma spravnou hodnotu
+    ret=$(sed -n '/^[^#].*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; $p')
+
+
+ # [ `cat $1 | grep ^[a-Z] | grep -i "IgnoreErrors" | wc -l` -gt 1 ] && 
+ # { echo "direktiva IgnoreErrors je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+ # [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /IgnoreErrors/' | wc -w` -gt 2 ] && 
+ #   { echo "direktiva IgnoreErrors v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
+ # TMP=`cat $1 | grep ^[a-Z] | grep -i "IgnoreErrors" | awk '{print $2}'`
+ # if ! [[ $TMP =~ ^$ ]]
+ # then
+ #   if ! [[ "$TMP" == "true" || "$TMP" == "false" ]]		# ma spatny format
+ #   then
+ #     echo "spatny format direktivy IgnoreErrors v zadanem konfiguracnim souboru"
+ #     echo "direktiva pripousti pouze hodnoty true, false"
+ #     exit 1;
+ #   fi
+ #   ERRORS=$TMP	# ok, direktiva je evedena a ma spravnou hodnotu
   fi
 
+  # ==================================
   # GNUPLOTPARAMS
-  if ! [[ "${SWITCHES[@]}" =~ g ]]	# zkoumame, zda jsme prepinac zpracovali
-  then  # direktiva muze byt uvedene nekolikrat, kontrola neni potreba
-    CNT=`cat $1 | grep ^[a-Z] | grep "GnuplotParams" | wc -l`
-    B=0
-    for ((i=1; i<=$CNT; i++))
-    do
-      VAL=`cat $1 | grep ^[a-Z] | grep "GnuplotParams" | sed 's/ *#.*// ; s/GnuplotParams //' | awk '{if(NR=='$i') print }'`
-      GNUPLOTPARAMS[$B]=$VAL
-	  ((B++))
-    done
-	[ $CNT -gt 1 ] && { 
-	  # direktiva je v souboru uvedena alespon 1x
-	  SWITCHES[$switches_idx]="g";	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((switches_idx++));
-	}
+  if ! [[ "${SWITCHES[@]}" =~ g ]]	# check if this particular switch was processed on command line
+  then
+    ret=$(sed -n '/^[^#].*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; $p')
+
+    
+#    CNT=`cat $1 | grep ^[a-Z] | grep "GnuplotParams" | wc -l`
+#    B=0
+#    for ((i=1; i<=$CNT; i++))
+#    do
+#      VAL=`cat $1 | grep ^[a-Z] | grep "GnuplotParams" | sed 's/ *#.*// ; s/GnuplotParams //' | awk '{if(NR=='$i') print }'`
+#      GNUPLOTPARAMS[$B]=$VAL
+#	  ((B++))
+#    done
+#	[ $CNT -gt 1 ] && { 
+#	  # direktiva je v souboru uvedena alespon 1x
+#	  SWITCHES[$switches_idx]="g";	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+#	  ((switches_idx++));
+#	}
   fi
 
+  # ==================================
   # LEGEND
-  if ! [[ "${SWITCHES[@]}" =~ l ]]	# zkoumame, zda jsme prepinac zpracovali
+  if ! [[ "${SWITCHES[@]}" =~ l ]]	# check if this particular switch was processed on command line
   then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Legend/' | wc -l` -gt 1 ] && 
-    { echo "direktiva Legend je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Legend/' | sed 's/Legend //'`
-    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-    then
-      LEGEND=$TMP	# ok, direktiva je evedena a ma spravny format
-	  SWITCHES[$switches_idx]="l"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((switches_idx++))
-    fi
+    ret=$(sed -n '/^[^#].*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; $p')
+  
+  
+ # then
+ #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Legend/' | wc -l` -gt 1 ] && 
+ #   { echo "direktiva Legend je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+ #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Legend/' | sed 's/Legend //'`
+ #   if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+ #   then
+ #     LEGEND=$TMP	# ok, direktiva je evedena a ma spravny format
+ #     SWITCHES[$switches_idx]="l"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+ #     ((switches_idx++))
+ #   fi
   fi
 
+  # ==================================
   # NAME
-  if ! [[ "${SWITCHES[@]}" =~ n ]]	# zkoumame, zda jsme prepinac zpracovali
+  if ! [[ "${SWITCHES[@]}" =~ n ]]	# check if this particular switch was processed on command line
   then
-    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Name/' | wc -l` -gt 1 ] && 
-    { echo "direktiva Legend je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
-    TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Name/ {print $2}'`
-    if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-    then
-      NAME=$TMP	# ok, direktiva je evedena a ma spravny format
-	  SWITCHES[$switches_idx]="n"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-	  ((switches_idx++))
-    fi
+    ret=$(sed -n '/^[^#].*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; $p')
+  
+  
+  
+ # if ! [[ "${SWITCHES[@]}" =~ n ]]	# zkoumame, zda jsme prepinac zpracovali
+ # then
+ #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Name/' | wc -l` -gt 1 ] && 
+ #   { echo "direktiva Legend je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
+ #   TMP=`cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Name/ {print $2}'`
+ #   if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
+ #   then
+ #     NAME=$TMP	# ok, direktiva je evedena a ma spravny format
+ #     SWITCHES[$switches_idx]="n"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
+ #     ((switches_idx++))
+ #   fi
   fi
-
-
-  echo "nic"
 
 #  [[ $X -eq $switches_idx ]] && { echo "zadany konfiguracni soubor $CONFIG neobsahuje zadne direktivy"; exit 1; }
 }
