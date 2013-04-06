@@ -66,6 +66,7 @@
 # jak se zachovat v pripade, ze je na radce zadan prepinac u ktereho je pripustnych vice vyskytu a zaroven bude zadana odpovidajici direktiva v konfiguracnim souboru
 
 
+# Direktiva má právě jednu hodnotu (odpovídá jednomu arumentu na příkazové řádce).  -> jak to resit? v ukazkovem konfiguraku gnuplotparams -> vice slov !!
 
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ j=0
 #lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ sw[$((j++))]="retezec"
@@ -494,21 +495,15 @@ function readConfig()
     # znak # predstavuje komentar az do konce radku
     # prazdne radky jsou nevyznamne, stejne tak jako radky obsahujici pouze mezery a taby
     # na jednom radku maximalne jedna direktiva             ==== JAK TO RESIT ?????
+    # Direktiva má právě jednu hodnotu (odpovídá jednomu arumentu na příkazové řádce). - toto by se dalo jednoduse resit pomoci wc, ale problem s gnuplotparams -> viz ukazkovy konfiguracni soubor
     
-    
-    
-    #sed -n '/^[^#].*TimeFormat/Ip' "$1"
-    #sed -n '/^[^#].*TimeFormat/Ip; s/^.*TimeFormat/TimeFormat/' "$1"
-    #sed -n '/^[^#].*TimeFormat/Ip' "$1" | sed 's/^.*TimeFormat/TimeFormat/; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //'
 
 
-
-
-    #sed -n '/^[^#].*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p'
-    
-    
     #ret=$(sed -n '/^[^#].*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p')
-    ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p')
+    
+    #ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p')
+    
+    ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; s/#.*$//; $p')
     
     echo "TIMEFORMAT:: ret: $ret"
 
@@ -528,7 +523,7 @@ function readConfig()
   # DOPLNIT KONKRETNI HODNOTY !!!
   if ! [[ "${SWITCHES[@]}" =~ X ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; $p')
+    ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/#.*$//; $p')
 
 
     echo "XMAX:: ret: $ret"
@@ -543,7 +538,7 @@ function readConfig()
   # DOPLNIT KONKRETNI HODNOTY !!!
   if ! [[ "${SWITCHES[@]}" =~ x ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; $p')
+    ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; s/#.*$//; $p')
 
     echo "XMIN:: ret: $ret"
 
@@ -557,7 +552,7 @@ function readConfig()
   if ! [[ "${SWITCHES[@]}" =~ Y ]]	# check if this particular switch was processed on command line
   then
     
-    ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; $p')
+    ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; s/#.*$//; $p')
     # tady se to chova nejak divne, proc ??
 
     #ret=$(sed -n '/^[^#].*Ymax /Ip' "$1")
@@ -578,7 +573,7 @@ function readConfig()
   if ! [[ "${SWITCHES[@]}" =~ y ]]	# check if this particular switch was processed on command line
   then
 
-    ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; $p')
+    ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/#.*$//; $p')
     echo "YMIN:: ret: $ret"
 
   fi
@@ -587,7 +582,7 @@ function readConfig()
   # SPEED
   if ! [[ "${SWITCHES[@]}" =~ S ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; $p')
+    ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/#.*$//; $p')
 
     echo "SPEED:: ret: $ret"
 
@@ -612,7 +607,7 @@ function readConfig()
   # TIME
   if ! [[ "${SWITCHES[@]}" =~ T ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; $p')
+    ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/#.*$//; $p')
 
 #    echo "TIME ::: ret: $ret"
     echo "TIME:: ret: $ret"
@@ -641,7 +636,7 @@ function readConfig()
   # FPS
   if ! [[ "${SWITCHES[@]}" =~ F ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; $p')
+    ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/#.*$//; $p')
   
     echo "FPS:: ret: $ret"
   
@@ -666,7 +661,7 @@ function readConfig()
   # CRITICALVALUE
   if ! [[ "${SWITCHES[@]}" =~ c ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; $p')
+    ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/#.*$//; $p')
   
     echo "CRITICALVALUE:: ret: $ret"
 
@@ -677,7 +672,7 @@ function readConfig()
   # LEGEND
   if ! [[ "${SWITCHES[@]}" =~ l ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; $p')
+    ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; s/#.*$//; $p')
   
     echo "LEGEND:: ret: $ret"
   
@@ -697,7 +692,7 @@ function readConfig()
   # GNUPLOTPARAMS
   if ! [[ "${SWITCHES[@]}" =~ g ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; $p')
+    ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/#.*$//; $p')
 
     echo "GNUPLOTPARAMS:: ret: $ret"
     
@@ -721,7 +716,7 @@ function readConfig()
   # direktiva muze byt uvedene vicekrat, kontrola neni potreba
   if ! [[ "${SWITCHES[@]}" =~ e ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; $p')
+    ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/#.*$//; $p')
 
     echo "EFFECTPARAMS:: ret: $ret"
 
@@ -750,7 +745,7 @@ function readConfig()
   # NAME
   if ! [[ "${SWITCHES[@]}" =~ n ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; $p')
+    ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; s/#.*$//; $p')
   
     echo "NAME:: ret: $ret"
   
@@ -772,7 +767,7 @@ function readConfig()
   # ERRORS
   if ! [[ "${SWITCHES[@]}" =~ E ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; $p')
+    ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/#.*$//; $p')
 
     echo "ERRORS:: ret: $ret"
 
