@@ -169,8 +169,7 @@ function readParams()
          
 		 [ -z "$OPTARG" ] && error "the value of the switch -t was not provided"
          SWITCHES[$((switches_idx++))]="t"	# save the processed switch
-         CONFIG["t"]="$OPTARG"
-		 TIMEFORM="$OPTARG";; # save the argument of the switch
+         CONFIG["t"]="$OPTARG";;            # save the argument of the switch
 
       X) # XMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -X was not provided"
@@ -182,8 +181,7 @@ function readParams()
          ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
 		   error "wrong argument of the switch -X"; }
          SWITCHES[$((switches_idx++))]="X"	# save the processed switch
-         CONFIG["X"]="$OPTARG"
-		 XMAX="$OPTARG";; # save the argument of the switch
+         CONFIG["X"]="$OPTARG";;            # save the argument of the switch
       
       x) # XMIN 
 		 [ -z "$OPTARG" ] && error "the value of the switch -x was not provided"
@@ -196,46 +194,40 @@ function readParams()
 		 ! [[ "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
 		   error "wrong argument of the switch -x"; }
          SWITCHES[$((switches_idx++))]="x"	# save the processed switch
-         CONFIG["x"]="$OPTARG"
-		 XMIN="$OPTARG";; # save the argument of the switch
+         CONFIG["x"]="$OPTARG";;            # save the argument of the switch
 
       Y) # YMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -Y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
 		   error "wrong argument of the switch -Y"; }
          SWITCHES[$((switches_idx++))]="Y"	# save the processed switch
-         CONFIG["Y"]="$OPTARG"
-		 YMAX="$OPTARG";; # save the argument of the switch
+         CONFIG["Y"]="$OPTARG";;            # save the argument of the switch
 
       y) # YMIN
 		 [ -z "$OPTARG" ] && error "the value of the switch -y was not provided"
 		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
 		   error "wrong argument of the switch -y"; }
          SWITCHES[$((switches_idx++))]="y"	# save the processed switch
-         CONFIG["y"]="$OPTARG"
-		 YMIN="$OPTARG";; # save the argument of the switch
+         CONFIG["y"]="$OPTARG";;            # save the argument of the switch
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -S"; }
          SWITCHES[$((switches_idx++))]="S"	# save the processed switch
-         CONFIG["S"]="$OPTARG"
-		 SPEED="$OPTARG";; # save the argument of the switch
+         CONFIG["S"]="$OPTARG";;            # save the argument of the switch
 
       T) # DURATION
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -T"; }
          SWITCHES[$((switches_idx++))]="T"	# save the processed switch
-         CONFIG["T"]="$OPTARG"
-		 DURATION="$OPTARG";; # save the argument of the switch
+         CONFIG["T"]="$OPTARG";;            # save the argument of the switch
 
       l) # LEGEND		 
 		 [ -z "$OPTARG" ] && error "the value of the switch -l was not provided"
          SWITCHES[$((switches_idx++))]="l"	# save the processed switch
-         CONFIG["l"]="$OPTARG"
-		 LEGEND="$OPTARG";; # save the argument of the switch, no value check needed
+         CONFIG["l"]="$OPTARG";;            # save the argument of the switch
 
       g) # GNUPLOTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -g was not provided"
@@ -269,27 +261,24 @@ function readParams()
          # => /root/.bashrc
 
          SWITCHES[$((switches_idx++))]="f"	# save the processed switch
-         CONFIG["f"]="$OPTARG"
-		 CONFIG="$OPTARG";;	# save the argument of the switch
+         CONFIG["f"]="$OPTARG";;            # save the argument of the switch
 
       n) # NAME
 		 [ -z "$OPTARG" ] && error "the value of the switch -n was not provided"
          SWITCHES[$((switches_idx++))]="n"	# save the processed switch
-         CONFIG["n"]="$OPTARG"
-		 NAME="$OPTARG";; # save the argument of the switch, no value check needed
+         CONFIG["n"]="$OPTARG";;            # save the argument of the switch
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # non-numeric value, should be int/float
            error "wrong argument of the switch -F"; }
          SWITCHES[$((switches_idx++))]="F"	# save the processed switch
-         CONFIG["F"]="$OPTARG"
-		 FPS="$OPTARG";; # save the argument of the switch
+         CONFIG["F"]="$OPTARG";;            # save the argument of the switch
 
       v) # VERBOSE
          SWITCHES[$((switches_idx++))]="v"	# save the processed switch
          CONFIG["v"]="1"
-         VERBOSE=1;; # set the value of global variable
+         VERBOSE=1;;                        # set the value of global variable
 
      \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
 		 exit 2;;
@@ -444,16 +433,9 @@ function readConfig()
     # Direktiva má právě jednu hodnotu (odpovídá jednomu arumentu na příkazové řádce). - toto by se dalo jednoduse resit pomoci wc, ale problem s gnuplotparams -> viz ukazkovy konfiguracni soubor
     
 
-
-    #ret=$(sed -n '/^[^#].*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p')
-    
-    #ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p')
-    
-    ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; s/[[:space:]]*#.*$//; $p')
     
     echo "TIMEFORMAT:: ret: $ret"
-
-
 
 
     # nezacina znakem #, pak je cokoliv, pak TimeFormat
@@ -469,7 +451,7 @@ function readConfig()
   # DOPLNIT KONKRETNI HODNOTY !!!
   if ! [[ "${SWITCHES[@]}" =~ X ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/[[:space:]]*#.*$//; $p')
 
 
     echo "XMAX:: ret: $ret"
@@ -484,7 +466,7 @@ function readConfig()
   # DOPLNIT KONKRETNI HODNOTY !!!
   if ! [[ "${SWITCHES[@]}" =~ x ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; s/[[:space:]]*#.*$//; $p')
 
     echo "XMIN:: ret: $ret"
 
@@ -498,19 +480,14 @@ function readConfig()
   if ! [[ "${SWITCHES[@]}" =~ Y ]]	# check if this particular switch was processed on command line
   then
     
-    ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; s/#.*$//; $p')
-    # tady se to chova nejak divne, proc ??
-
-    #ret=$(sed -n '/^[^#].*Ymax /Ip' "$1")
-    #ret=$(sed -n '/^[^#]?.*Ymax /Ip' "$1") # -> cokoliv krome hashe nemusi na zacatku byt !! -> radek muze zacinat samotnou direktivou
-    #ret=$(sed -n '/.*Ymax /Ip' "$1") 
-
-    #echo "ret: $ret"
+    ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; s/[[:space:]]*#.*$//; $p')
+    
     echo "YMAX:: ret: $ret"
 
-    # ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-    #   error "wrong argument of the Ymax directive in configuration file \"$1\""; }
-
+    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+    
+    verbose "value of the configuration directive Ymax $ret"
 
   fi
 
@@ -519,8 +496,11 @@ function readConfig()
   if ! [[ "${SWITCHES[@]}" =~ y ]]	# check if this particular switch was processed on command line
   then
 
-    ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/[[:space:]]*#.*$//; $p')
     echo "YMIN:: ret: $ret"
+
+    # ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
+    #   error "wrong argument of the Ymax directive in configuration file \"$1\""; }
 
   fi
 
@@ -528,9 +508,15 @@ function readConfig()
   # SPEED
   if ! [[ "${SWITCHES[@]}" =~ S ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
     echo "SPEED:: ret: $ret"
+
+
+    # ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+    #   error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+
+
 
   # nejaky drivejsi balast
  #   [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /Speed/' | wc -l` -gt 1 ] && 
@@ -553,9 +539,8 @@ function readConfig()
   # TIME
   if ! [[ "${SWITCHES[@]}" =~ T ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
 
-#    echo "TIME ::: ret: $ret"
     echo "TIME:: ret: $ret"
 
 
@@ -582,10 +567,13 @@ function readConfig()
   # FPS
   if ! [[ "${SWITCHES[@]}" =~ F ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
     echo "FPS:: ret: $ret"
-  
+   
+    
+
+
   # nejaky drivejsi balast
 #    [ `cat $1 | grep ^[a-Z] | awk 'BEGIN{IGNORECASE=1} /FPS/' | wc -l` -gt 1 ] && 
 #    { echo "direktiva FPS je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
@@ -607,7 +595,7 @@ function readConfig()
   # CRITICALVALUE
   if ! [[ "${SWITCHES[@]}" =~ c ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/[[:space:]]*#.*$//; $p')
   
     echo "CRITICALVALUE:: ret: $ret"
 
@@ -618,7 +606,7 @@ function readConfig()
   # LEGEND
   if ! [[ "${SWITCHES[@]}" =~ l ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; s/[[:space:]]*#.*$//; $p')
   
     echo "LEGEND:: ret: $ret"
   
@@ -638,7 +626,7 @@ function readConfig()
   # GNUPLOTPARAMS
   if ! [[ "${SWITCHES[@]}" =~ g ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/[[:space:]]*#.*$//; $p')
 
     echo "GNUPLOTPARAMS:: ret: $ret"
     
@@ -662,7 +650,7 @@ function readConfig()
   # direktiva muze byt uvedene vicekrat, kontrola neni potreba
   if ! [[ "${SWITCHES[@]}" =~ e ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/[[:space:]]*#.*$//; $p')
 
     echo "EFFECTPARAMS:: ret: $ret"
 
@@ -691,7 +679,7 @@ function readConfig()
   # NAME
   if ! [[ "${SWITCHES[@]}" =~ n ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; s/[[:space:]]*#.*$//; $p')
   
     echo "NAME:: ret: $ret"
   
@@ -713,7 +701,7 @@ function readConfig()
   # ERRORS
   if ! [[ "${SWITCHES[@]}" =~ E ]]	# check if this particular switch was processed on command line
   then
-    ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/#.*$//; $p')
+    ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/[[:space:]]*#.*$//; $p')
 
     echo "ERRORS:: ret: $ret"
 
@@ -758,8 +746,6 @@ function readConfig()
 
 
   # doplnit neimplementovane prepinace -c, -E
-  
-  
   
   
   typeset -a SWITCHES       # pole, zapiseme jake prepinace jsme zpracovali
