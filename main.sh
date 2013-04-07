@@ -201,11 +201,18 @@ function readParams()
          #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime(d), $0}'
          
          #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime($0)}'
-         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime( d, $0)}'
-         awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f, t)}'
+         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f, t)}'
          
          
-         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print "format " d; print "timestamp " $0; }'
+         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(t, f)}'
+         
+         
+         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f)}'
+         
+         #awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f, t)}'
+         
+         
+         echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{printf("format %s\n", f); printf("timestamp %s\n", t); }'
          
          
          ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
