@@ -95,8 +95,16 @@
 
 
 
-
-
+#-------------------------------------------------------------------------------
+# function to print how to use this script
+# parameters:
+#   function takes no parameters
+#-------------------------------------------------------------------------------
+function usage()
+{
+  echo -e "\e[1;31musage: $0 [OPTION]... FILE... \e[0m" >&2    # print in red color
+  exit 1;
+}
 #-------------------------------------------------------------------------------
 # function for reporting information about script progress
 # parameters:
@@ -131,7 +139,7 @@ function error()
 
   echo -e "\e[1;31mexitting\e[0m" >&2    # print in red color
 
-  exit 1;
+  exit 2;
 }
 
 
@@ -160,6 +168,8 @@ function readParams()
   local switches_idx=0      # indexing of $SWITCHES
   local gp_params_idx=0     # indexing of $GNUPLOTPARAMS
   local eff_params_idx=0    # indexing of $GNUPLOTPARAMS 
+
+  [[ $# < 2 ]] && usage     # print how to use
 
   while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
   do
