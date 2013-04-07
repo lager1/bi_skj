@@ -176,6 +176,26 @@ function readParams()
 		 
          # TADY JESTE DODELAT KONTRENI HODNOTU !!!
          # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
+         # TADY JESTE MUZE NASTAT PROBLEM S TIM, ZE -X BUDE UVEDENO DRIVE NEZ -t A PAK BY MOHL NASTAT PROBLEM !!!
+         
+
+         #echo "(2012-02-11 17:15:00)" | gawk '{if (NR==1) print strftime("(%Y-%m-%d %H:%M:%S)"), $0}'
+
+
+
+         #echo "(2012-02-11 17:15:00)" | awk '{print strftime("(%Y-%m-%d %H:%M:%S)"), $0}'
+         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print "datum je" d ; print strftime("(d)"), $0}'
+         
+         
+         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime("(d)"), $0}'
+         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime(d), $0}'
+         
+         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime($0)}'
+         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime( d, $0)}'
+         awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f, t)}'
+         
+         
+         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print "format " d; print "timestamp " $0; }'
          
          
          ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
@@ -188,6 +208,7 @@ function readParams()
 
          # TADY JESTE DODELAT KONTRENI HODNOTU !!!
          # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
+         # TADY JESTE MUZE NASTAT PROBLEM S TIM, ZE -X BUDE UVEDENO DRIVE NEZ -t A PAK BY MOHL NASTAT PROBLEM !!!
          
 
 
