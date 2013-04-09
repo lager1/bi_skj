@@ -177,7 +177,8 @@ function readParams()
 {
   local switches_idx=0      # indexing of $SWITCHES
   local gp_params_idx=0     # indexing of $GNUPLOTPARAMS
-  local eff_params_idx=0    # indexing of $GNUPLOTPARAMS 
+  local eff_params_idx=0    # indexing of $EFFECTPARAMS
+  local crit_val_idx=0      # indexing of $CRITICALVALUES
 
   [[ $# -lt 2 ]] && usage     # print how to use
 
@@ -265,12 +266,27 @@ function readParams()
          SWITCHES[$((switches_idx++))]="S"	# save the processed switch
          CONFIG["S"]="$OPTARG";;            # save the argument of the switch
 
-      T) # DURATION
+      T) # TIME
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
 		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -T"; }
          SWITCHES[$((switches_idx++))]="T"	# save the processed switch
          CONFIG["T"]="$OPTARG";;            # save the argument of the switch
+
+      F) # FPS
+		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
+		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # non-numeric value, should be int/float
+           error "wrong argument of the switch -F"; }
+         SWITCHES[$((switches_idx++))]="F"	# save the processed switch
+         CONFIG["F"]="$OPTARG";;            # save the argument of the switch
+
+      c) # CRITICALVALUE
+		 [ -z "$OPTARG" ] && error "the value of the switch -c was not provided"
+         SWITCHES[$((switches_idx++))]="c"	# save the processed switch
+         
+         # kontrola hodnoty
+          
+		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
 
       l) # LEGEND		 
 		 [ -z "$OPTARG" ] && error "the value of the switch -l was not provided"
@@ -280,7 +296,6 @@ function readParams()
       g) # GNUPLOTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -g was not provided"
          SWITCHES[$((switches_idx++))]="g"	# save the processed switch
-         CONFIG["g"]="$OPTARG"
 		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
    
    
@@ -296,7 +311,6 @@ function readParams()
              error "wrong argument of the switch -e"; }
 		   EFFECTPARAMS[$((eff_params_idx++))]="$i"	# save the argument of the switch or a part of it
 	     done
-         CONFIG["e"]="$OPTARG"
          SWITCHES[$((switches_idx++))]="e";;	# save the processed switch
 		 
       f) # CONFIG
@@ -315,13 +329,6 @@ function readParams()
 		 [ -z "$OPTARG" ] && error "the value of the switch -n was not provided"
          SWITCHES[$((switches_idx++))]="n"	# save the processed switch
          CONFIG["n"]="$OPTARG";;            # save the argument of the switch
-
-      F) # FPS
-		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
-		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # non-numeric value, should be int/float
-           error "wrong argument of the switch -F"; }
-         SWITCHES[$((switches_idx++))]="F"	# save the processed switch
-         CONFIG["F"]="$OPTARG";;            # save the argument of the switch
 
       v) # VERBOSE
          SWITCHES[$((switches_idx++))]="v"	# save the processed switch
@@ -450,7 +457,10 @@ function checkFiles()
 function readConfig()
 {
   [[ "${CONFIG["f"]}" != "" ]] || return;        # configuration file was not provided
+  [[ $(wc -l < "${CONFIG["f"]}") -eq 0 ]] && { warning "provided configuration file \"${CONFIG["f"]}\" is empty"; return; } # empty configuration file
 
+
+  len=${#SWITCHES[@]}	# number
 
   # indexace pomocneho pole
   switches_idx=${#SWITCHES[@]}	# delka pole, budeme zapisovat dal
@@ -739,13 +749,14 @@ function readConfig()
 # main
 #-------------------------------------------------------------------------------
   # main configuration variables, global for whole file
-  typeset -A CONFIG                 # asociativni pole pro konfiguracni promenne, indexy jsou prepinace, hodnoty jsou jejich argumenty
+  typeset -A CONFIG                 # associative field for configuration variables, indexes are switches, values are their arguments
   CONFIG["t"]="[%Y-%m-%d %H:%M:%S]" # timestamp format
   CONFIG["X"]="max"                 # maximum x-axis value
   CONFIG["x"]="min"                 # minimum X-axis value
   CONFIG["Y"]="auto"                # maximum y-axis value
   CONFIG["y"]="auto"                # minimum y-axis value
   CONFIG["S"]=1                     # speed - number of data entries in one picture 
+  CONFIG["T"]=""                    # duration of the animation
   CONFIG["F"]=25                    # frames per second
   CONFIG["f"]=""                    # configuration file
   CONFIG["n"]=""                    # name of the output directory
@@ -754,10 +765,13 @@ function readConfig()
 
   # doplnit neimplementovane prepinace -c, -E
   
-  
-  typeset -a SWITCHES       # pole, zapiseme jake prepinace jsme zpracovali
-  typeset -a DATA			# pole obsahujici soubory s daty
-  typeset -a TEMPFILES		# docasne soubory
+  typeset -a SWITCHES       # field for all processed switches
+  typeset -a DATA			# filed containing data files
+  typeset -a TEMPFILES		# temporary files
+  typeset -a GNUPLOTPARAMS  # field for gnuplot parameters
+  typeset -a EFFECTPARAMS   # field for effect parameters
+  typeset -a CRITICALVALUES # field for critical values
+
   GNUPLOTDEF=0
   FRAMES=0					# celkovy pocet generovanych snimku
   RECORDS=0					# pocet zaznamu v souboru
@@ -787,9 +801,6 @@ function readConfig()
 
   # pouze debug
   echo "MULTIPLOT: $MULTIPLOT"
-
-  # debug
-  warning "zadany konfiguracni soubor je prazdny"
 
 
 
