@@ -103,8 +103,7 @@
 #-------------------------------------------------------------------------------
 function warning()
 {
-  echo -e "\e[1;33m$1\e[0m" >&2    # print in yellow color
-
+  echo -e "\e[1;33mWARNING: $1\e[0m" >&2    # print in yellow color
 }
 #-------------------------------------------------------------------------------
 # function to print how to use this script
