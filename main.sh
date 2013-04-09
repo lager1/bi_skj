@@ -95,6 +95,17 @@
 
 
 
+
+#-------------------------------------------------------------------------------
+# function to print warning message
+# parameters:
+#   function takes one argument, it is printed to the standart output
+#-------------------------------------------------------------------------------
+function warning()
+{
+  echo -e "\e[1;33m$1\e[0m" >&2    # print in yellow color
+
+}
 #-------------------------------------------------------------------------------
 # function to print how to use this script
 # parameters:
@@ -169,7 +180,7 @@ function readParams()
   local gp_params_idx=0     # indexing of $GNUPLOTPARAMS
   local eff_params_idx=0    # indexing of $GNUPLOTPARAMS 
 
-  [[ $# < 2 ]] && usage     # print how to use
+  [[ $# -lt 2 ]] && usage     # print how to use
 
   while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
   do
@@ -777,4 +788,9 @@ function readConfig()
 
   # pouze debug
   echo "MULTIPLOT: $MULTIPLOT"
+
+  # debug
+  warning "zadany konfiguracni soubor je prazdny"
+
+
 
