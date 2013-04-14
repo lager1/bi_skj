@@ -247,35 +247,35 @@ function readParams()
 
       Y) # YMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -Y was not provided"
-		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
+		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
 		   error "wrong argument of the switch -Y"; }
          SWITCHES[$((switches_idx++))]="Y"	# save the processed switch
          CONFIG["Y"]="$OPTARG";;            # save the argument of the switch
 
       y) # YMIN
 		 [ -z "$OPTARG" ] && error "the value of the switch -y was not provided"
-		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
+		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
 		   error "wrong argument of the switch -y"; }
          SWITCHES[$((switches_idx++))]="y"	# save the processed switch
          CONFIG["y"]="$OPTARG";;            # save the argument of the switch
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
-		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
+		 ! [[ "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -S"; }
          SWITCHES[$((switches_idx++))]="S"	# save the processed switch
          CONFIG["S"]="$OPTARG";;            # save the argument of the switch
 
       T) # TIME
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
-		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
+		 ! [[ "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
 		   error "wrong argument of the switch -T"; }
          SWITCHES[$((switches_idx++))]="T"	# save the processed switch
          CONFIG["T"]="$OPTARG";;            # save the argument of the switch
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
-		 ! [[ "$OPTARG" =~ ^[0-9]+$ || "$OPTARG" =~ ^[0-9]+\.[0-9]+$ ]]	&& { # non-numeric value, should be int/float
+		 ! [[ "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
            error "wrong argument of the switch -F"; }
          SWITCHES[$((switches_idx++))]="F"	# save the processed switch
          CONFIG["F"]="$OPTARG";;            # save the argument of the switch
@@ -285,6 +285,7 @@ function readParams()
          SWITCHES[$((switches_idx++))]="c"	# save the processed switch
          
          # kontrola hodnoty
+         # pozor na + a -
           
 		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
 
@@ -459,15 +460,6 @@ function readConfig()
   [[ "${CONFIG["f"]}" != "" ]] || return;        # configuration file was not provided
   [[ $(wc -l < "${CONFIG["f"]}") -eq 0 ]] && { warning "provided configuration file \"${CONFIG["f"]}\" is empty"; return; } # empty configuration file
 
-
-  len=${#SWITCHES[@]}	# number
-
-  # indexace pomocneho pole
-  switches_idx=${#SWITCHES[@]}	# delka pole, budeme zapisovat dal
-  #X=${#SWITCHES[@]}	# promenna pro kontrolu, zda vubec konfiraguracni soubor neco obsahuje
-  # ve vysledku mozna nebude treba?
-
-
 #
 #
 #
@@ -475,10 +467,8 @@ function readConfig()
 #
 
 
-  local ret
-  # variable for checking values of the configuration directives
-
-
+  local ret             # for checking values of the configuration directives
+  local directives=0    # number of processed configuration directives
 
   # ==================================
   # TIMEFORMAT
@@ -547,7 +537,7 @@ function readConfig()
     if [[ "$ret" != "" ]]   # was provided in configuration file
     then
     
-      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
         error "wrong argument of the Ymax directive in configuration file \"$1\""; }
 
       CONFIG["Y"]="$ret"
@@ -565,7 +555,7 @@ function readConfig()
     if [[ "$ret" != "" ]]   # was provided in configuration file
     then
 
-      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
+      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
         error "wrong argument of the Ymin directive in configuration file \"$1\""; }
       
       CONFIG["y"]="$ret"
@@ -582,7 +572,7 @@ function readConfig()
     if [[ "$ret" != "" ]]   # was provided in configuration file
     then
 
-      ! [[ "$ret" =~ ^[0-9]+$ || "$ret" =~ ^[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+      ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
         error "wrong argument of the Speed directive in configuration file \"$1\""; }
       
       CONFIG["S"]="$ret"
@@ -599,7 +589,7 @@ function readConfig()
     if [[ "$ret" != "" ]]   # was provided in configuration file
     then
 
-      ! [[ "$ret" =~ ^[0-9]+$ || "$ret" =~ ^[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+      ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
         error "wrong argument of the Time directive in configuration file \"$1\""; }
 
       CONFIG["T"]="$ret"
@@ -616,7 +606,7 @@ function readConfig()
     if [[ "$ret" != "" ]]   # was provided in configuration file
     then
 
-      ! [[ "$ret" =~ ^[0-9]+$ || "$ret" =~ ^[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+      ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
         error "wrong argument of the FPS directive in configuration file \"$1\""; }
 
       CONFIG["F"]="$ret"
@@ -738,8 +728,7 @@ function readConfig()
  #   ERRORS=$TMP	# ok, direktiva je evedena a ma spravnou hodnotu
   fi
 
-
-#  [[ $X -eq $switches_idx ]] && { echo "zadany konfiguracni soubor $CONFIG neobsahuje zadne direktivy"; exit 1; }
+  [[ $directives -eq 0 ]] && warning "provided configuration file \"${CONFIG["f"]}\" does not contain any configuration directives"
 }
 
 
