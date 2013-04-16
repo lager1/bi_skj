@@ -482,12 +482,19 @@ function readConfig()
 #
 
 
+    # PROBLEM V CELE FUNKCI -> JE TREBA KOUKAT, ZDA TAM DIREKTIVA JE A ZDA MA NEJAKOU HODNOTU
+    # SOUCASNA IMPLEMENTACE NEODHALI CHYBI, KDY JE DIREKTIVA UVEDENA BEZ HODNOTY !!!!!
+
+
   local ret             # for checking values of the directives
   local directives=0    # number of processed directives
 
+
   # ==================================
   # TIMEFORMAT
-  if ! [[ "${SWITCHES[@]}" =~ t ]]	# check if this particular switch was processed on command line
+  #if ! [[ "${SWITCHES[@]}" =~ t && "$(grep -i "TimeFormat")" != "" ]]	# check if this particular switch was processed on command line
+
+  if ! [[ "${SWITCHES[@]}" =~ t || "$(grep -i "TimeFormat" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
 
     # znak # predstavuje komentar az do konce radku
@@ -497,8 +504,9 @@ function readConfig()
     
 
     ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; s/[[:space:]]*#.*$//; $p')
+    [[ "$ret" == "" ]] && error "value of the directive TimeFormat was not provided in the configuration file \"$1\""
     
-    echo "TIMEFORMAT:: ret: $ret"
+    echo "TIMEFORMAT:: ret: '$ret'"
 
 
     # nezacina znakem #, pak je cokoliv, pak TimeFormat
@@ -511,184 +519,165 @@ function readConfig()
   
   # ==================================
   #XMAX
-  if ! [[ "${SWITCHES[@]}" =~ X ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ X || "$(grep -i "Xmax" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/[[:space:]]*#.*$//; $p')
 
-    if [[ "$ret" != "" ]]   # was provided in configuration file
+    [[ "$ret" == "" ]] && error "value of the Xmax directive was not provided in the configuration file \"$1\""
+
+    if ! [[ "$ret" == "auto" || "$ret" == "max" ]] # none of acceptable text values
     then
+      # there may be specific value, need to be checked
 
-      if ! [[ "$ret" == "auto" || "$ret" == "max" ]] # none of acceptable text values
-      then
-        # there may be specific value, need to be checked
+      [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
+        error "wrong argument of the Xmax directive"; }
 
-        [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
-          error "wrong argument of the Xmax directive"; }
-
-        # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-        [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the directive Xmax in the configuration file \"$1\" does not match"
-      fi
-      
-      # zde uz je vstup overen
-      CONFIG["X"]="$ret"
-      ((directives++))
-      verbose "value of the directive Xmax: $ret"
+      # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
     fi
+    
+    # zde uz je vstup overen
+    CONFIG["X"]="$ret"
+    ((directives++))
+    verbose "value of the Xmax directive: $ret"
   fi
   
   # ==================================
   #XMIN
-  # DOPLNIT KONKRETNI HODNOTY !!!
-  if ! [[ "${SWITCHES[@]}" =~ x ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ x || "$(grep -i "Xmin" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; s/[[:space:]]*#.*$//; $p')
 
-    if [[ "$ret" != "" ]]   # was provided in configuration file
+    [[ "$ret" == "" ]] && error "value of the Xmin directive was not provided in the configuration file \"$1\""
+
+    if ! [[ "$ret" == "auto" || "$ret" == "min" ]] # none of acceptable text values
     then
+      # there may be specific value, need to be checked
 
-      if ! [[ "$ret" == "auto" || "$ret" == "min" ]] # none of acceptable text values
-      then
-        # there may be specific value, need to be checked
+      [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
+        error "wrong argument of the Xmin directive"; }
 
-        [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
-          error "wrong argument of the Xmin directive"; }
-
-        # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-        [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the directive Xmin in the configuration file \"$1\" does not match"
-      fi
-      
-      # zde uz je vstup overen
-      CONFIG["x"]="$ret"
-      ((directives++))
-      verbose "value of the directive Xmin: $ret"
+      # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
     fi
+    
+    # zde uz je vstup overen
+    CONFIG["x"]="$ret"
+    ((directives++))
+    verbose "value of the Xmin directive: $ret"
   fi
 
   # ==================================
   # YMAX
-  if ! [[ "${SWITCHES[@]}" =~ Y ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "Ymax" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     
     ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; s/[[:space:]]*#.*$//; $p')
     
-    if [[ "$ret" != "" ]]   # was provided in configuration file
-    then
-    
-      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-        error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+    [[ "$ret" == "" ]] && error "value of the Ymax directive was not provided in the configuration file \"$1\""
+    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
+      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
 
-      CONFIG["Y"]="$ret"
-      ((directives++))
-      verbose "value of the directive Ymax: $ret"
-    fi
+    CONFIG["Y"]="$ret"
+    ((directives++))
+    verbose "value of the directive Ymax: $ret"
   fi
 
   # ==================================
   # YMIN
-  if ! [[ "${SWITCHES[@]}" =~ y ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ y || "$(grep -i "Ymin" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
 
     ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/[[:space:]]*#.*$//; $p')
 
-    if [[ "$ret" != "" ]]   # was provided in configuration file
-    then
-
-      ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
-        error "wrong argument of the Ymin directive in configuration file \"$1\""; }
-      
-      CONFIG["y"]="$ret"
-      ((directives++))
-      verbose "value of the directive Ymin: $ret"
-    fi
+    [[ "$ret" == "" ]] && error "value of the Ymin directive was not provided in the configuration file \"$1\""
+    ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
+      error "wrong argument of the Ymin directive in configuration file \"$1\""; }
+    
+    CONFIG["y"]="$ret"
+    ((directives++))
+    verbose "value of the directive Ymin: $ret"
   fi
 
   # ==================================
   # SPEED
-  if ! [[ "${SWITCHES[@]}" =~ S ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ S || "$(grep -i "Speed" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
-    if [[ "$ret" != "" ]]   # was provided in configuration file
-    then
-
-      ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
-        error "wrong argument of the Speed directive in configuration file \"$1\""; }
-      
-      CONFIG["S"]="$ret"
-      ((directives++))
-      verbose "value of the directive Speed: $ret"
-    fi
+    [[ "$ret" == "" ]] && error "value of the Speed directive was not provided in the configuration file \"$1\""
+    ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+      error "wrong argument of the Speed directive in configuration file \"$1\""; }
+    
+    CONFIG["S"]="$ret"
+    ((directives++))
+    verbose "value of the directive Speed: $ret"
   fi
 
   # ==================================
   # TIME
-  if ! [[ "${SWITCHES[@]}" =~ T ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ T || "$(grep -i "Time" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
     
-    if [[ "$ret" != "" ]]   # was provided in configuration file
-    then
+    [[ "$ret" == "" ]] && error "value of the Time directive was not provided in the configuration file \"$1\""
+    ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+      error "wrong argument of the Time directive in configuration file \"$1\""; }
 
-      ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
-        error "wrong argument of the Time directive in configuration file \"$1\""; }
-
-      CONFIG["T"]="$ret"
-      ((directives++))
-      verbose "value of the directive Time: $ret"
-    fi
+    CONFIG["T"]="$ret"
+    ((directives++))
+    verbose "value of the directive Time: $ret"
   fi
 
   # ==================================
   # FPS
-  if ! [[ "${SWITCHES[@]}" =~ F ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ F || "$(grep -i "FPS" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
-    if [[ "$ret" != "" ]]   # was provided in configuration file
-    then
+    [[ "$ret" == "" ]] && error "value of the FPS directive was not provided in the configuration file \"$1\""
+    ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+      error "wrong argument of the FPS directive in configuration file \"$1\""; }
 
-      ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
-        error "wrong argument of the FPS directive in configuration file \"$1\""; }
-
-      CONFIG["F"]="$ret"
-      ((directives++))
-      verbose "value of the directive FPS: $ret"
-    fi
+    CONFIG["F"]="$ret"
+    ((directives++))
+    verbose "value of the directive FPS: $ret"
   fi
 
   # ==================================
   # CRITICALVALUE
-  if ! [[ "${SWITCHES[@]}" =~ c ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ c || "$(grep -i "CriticalValue" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/[[:space:]]*#.*$//; $p')
   
     echo "CRITICALVALUE:: ret: $ret"
 
+    [[ "$ret" == "" ]] && error "value of the CriticalValue directive was not provided in the configuration file \"$1\""
 
   fi
 
   # ==================================
   # LEGEND
-  if ! [[ "${SWITCHES[@]}" =~ l ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ l || "$(grep -i "Legend" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; s/[[:space:]]*#.*$//; $p')
   
-    if [[ "$ret" != "" ]]   # was provided in configuration file
-    then
-      CONFIG["l"]="$ret"
-      ((directives++))
-      verbose "value of the directive Legend: $ret"
-    fi
+    [[ "$ret" == "" ]] && error "value of the Legend directive was not provided in the configuration file \"$1\""
+    CONFIG["l"]="$ret"
+    ((directives++))
+    verbose "value of the directive Legend: $ret"
   fi
 
   # ==================================
   # GNUPLOTPARAMS
-  if ! [[ "${SWITCHES[@]}" =~ g ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ g || "$(grep -i "GnuplotParams" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/[[:space:]]*#.*$//; $p')
 
     echo "GNUPLOTPARAMS:: ret: $ret"
     
+    [[ "$ret" == "" ]] && error "value of the GnuplotParams directive was not provided in the configuration file \"$1\""
+
 #    CNT=`cat $1 | grep ^[a-Z] | grep "GnuplotParams" | wc -l`
 #    B=0
 #    for ((i=1; i<=$CNT; i++))
@@ -707,11 +696,13 @@ function readConfig()
   # ==================================
   # EFFECTPARAMS
   # direktiva muze byt uvedene vicekrat, kontrola neni potreba
-  if ! [[ "${SWITCHES[@]}" =~ e ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ e || "$(grep -i "EffectParams" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/[[:space:]]*#.*$//; $p')
 
     echo "EFFECTPARAMS:: ret: $ret"
+    
+    [[ "$ret" == "" ]] && error "value of the EffectParams directive was not provided in the configuration file \"$1\""
 
   #[ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /EffectParams/' | wc -w` -gt 2 ] && 
   #{ echo "direktiva EffectParams obsahuje vice nez jedno klicove slovo"; exit 1; }    		# direktiva obsahuje vice klicovych slov
@@ -736,25 +727,25 @@ function readConfig()
 
   # ==================================
   # NAME
-  if ! [[ "${SWITCHES[@]}" =~ n ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ n || "$(grep -i "Name" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; s/[[:space:]]*#.*$//; $p')
   
-    if [[ "$ret" != "" ]]   # was provided in configuration file
-    then
-      CONFIG["n"]="$ret"
-      ((directives++))
-      verbose "value of the directive Name: $ret"
-    fi
+    [[ "$ret" == "" ]] && error "value of the Name directive was not provided in the configuration file \"$1\""
+    CONFIG["n"]="$ret"
+    ((directives++))
+    verbose "value of the directive Name: $ret"
   fi
   
   # ==================================
   # ERRORS
-  if ! [[ "${SWITCHES[@]}" =~ E ]]	# check if this particular switch was processed on command line
+  if ! [[ "${SWITCHES[@]}" =~ E || "$(grep -i "IgnoreErrors" "$1")" == "" ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/[[:space:]]*#.*$//; $p')
 
     echo "ERRORS:: ret: $ret"
+
+    [[ "$ret" == "" ]] && error "value of the IgnoreErrors directive was not provided in the configuration file \"$1\""
 
  # [ `cat $1 | grep ^[a-Z] | grep -i "IgnoreErrors" | wc -l` -gt 1 ] && 
  # { echo "direktiva IgnoreErrors je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
