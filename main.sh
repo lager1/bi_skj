@@ -240,10 +240,10 @@ function readParams()
            # there may be specific value, need to be checked
 
            [[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
-             error "wrong argument of the switch -X"; }
+             error "wrong argument of the switch -x"; }
 
            # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"   
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"   
          fi
 
          # zde uz je vstup overen
