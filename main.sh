@@ -8,7 +8,7 @@
 # This script generates animation based on provided data files,
 # additionaly its behavior can be affected by switches or by configuration file.
 # Its possible to use both options together, if switch and corresponding
-# configuration directive are used, then switch is preffered.
+# directive are used, then switch is preffered.
 #
 #
 
@@ -180,8 +180,6 @@ function readParams()
   local eff_params_idx=0    # indexing of $EFFECTPARAMS
   local crit_val_idx=0      # indexing of $CRITICALVALUES
 
-  #local ret                 # 
-
   [[ $# -lt 2 ]] && usage     # print how to use
 
   while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
@@ -201,86 +199,32 @@ function readParams()
          # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
          # TADY JESTE MUZE NASTAT PROBLEM S TIM, ZE -X BUDE UVEDENO DRIVE NEZ -t A PAK BY MOHL NASTAT PROBLEM !!!
          
-
-         #echo "(2012-02-11 17:15:00)" | gawk '{if (NR==1) print strftime("(%Y-%m-%d %H:%M:%S)"), $0}'
-
-
-
-         #echo "(2012-02-11 17:15:00)" | awk '{print strftime("(%Y-%m-%d %H:%M:%S)"), $0}'
-         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print "datum je" d ; print strftime("(d)"), $0}'
-         
-         
-         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime("(d)"), $0}'
-         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime(d), $0}'
-         
-         #echo "$OPTARG" | awk -v d="${CONFIG["t"]}" '{print strftime($0)}'
-         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f, t)}'
-         
-         
-         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(t, f)}'
-         
-         
-         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f)}'
-         
-         #awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f, t)}'
-         
          # google rika neco jako sort -k2M -k3 -k4
          # hm hm .. ?
          # --> dulezitosti jednotlivych klicu
          # 
-         # 
-         # 
-         # 
          
-         echo "OPTARG: $OPTARG"
-         #date "+$(printf "%s" ${CONFIG["t"]})"  # -> timto dostaneme aktualni datum ve formatu, ktery byl definovan
-         # --> je treba pouze jeste doplnit konkretni argument --> datum a zkontrolovat, ze se shoduje se zadanym argumentem
-         #date "+$(printf "%s" ${CONFIG["t"]})"
-         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG"    -> definovany format a zadany argument, musi se shodovat s tim, co bylo zadano na radce, jinak je problem ve formatu nebo argumentu
-
-
-         # nastava problem s oddelovaci mezi jednotlivymi formatovacimi retezci -> chtelo by to pro date odstanit vsechny nenumericke znaky
-
-         echo "spravne definovane datum v definovanem formatu: "
-         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')"
-         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')" # zda se, ze toto funguje bez problemu
-         #(date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG")
-         # je treba ale zase zachovat mezery -> asi obecne space
-         
-         
-         set -v
-         set -x
-         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9][^::space::]//g')" # zda se, ze toto funguje bez problemu
-         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9][^[:space:]]//g')" # zda se, ze toto funguje bez problemu
-         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^[:space:]0-9]//g')" # zda se, ze toto funguje bez problemu
-         #date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^[:space:]0-9]//g')" # zda se, ze toto funguje bez problemu
 
          # finalni verze, problem s mezerami sice zustava .. date vyhazuje invalid date na argument prepinace -d, ktery obsahuje mezery !!
          # argument musi byt mez mezer, dulezity je formatovaci retezec !!!!!!!!
-         date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')" # zda se, ze toto funguje bez problemu
+         #date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')" # zda se, ze toto funguje bez problemu
 
-         #if [[ "$(date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG")" == "$OPTARG" ]]
-         #if [[ "$(date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]]
-         if [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]]
+         # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+         #[[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"   
+
+         if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] # none of acceptable text values
          then
-           echo "ok, format a argument jsou spravne"
-         else
-           echo "fail"
+           # there may be specific value, need to be checked
+
+           [[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
+             error "wrong argument of the switch -X"; }
+
+           # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"   
          fi
 
-         set +v
-         set +x
+         # zde uz je vstup overen
 
-         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG"
-         #printf "%s" ${CONFIG["t"]}
-         #echo ""
-         #echo ""
-         #echo ""
-         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{printf("format %s\n", f); printf("timestamp %s\n", t); }'
-         
-         
-         ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
-		   error "wrong argument of the switch -X"; }
          SWITCHES[$((switches_idx++))]="X"	# save the processed switch
          CONFIG["X"]="$OPTARG";;            # save the argument of the switch
       
@@ -290,11 +234,20 @@ function readParams()
          # TADY JESTE DODELAT KONTRENI HODNOTU !!!
          # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
          # TADY JESTE MUZE NASTAT PROBLEM S TIM, ZE -X BUDE UVEDENO DRIVE NEZ -t A PAK BY MOHL NASTAT PROBLEM !!!
+
+         if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "min" ]] # none of acceptable text values
+         then
+           # there may be specific value, need to be checked
+
+           [[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
+             error "wrong argument of the switch -X"; }
+
+           # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"   
+         fi
+
+         # zde uz je vstup overen
          
-
-
-		 ! [[ "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
-		   error "wrong argument of the switch -x"; }
          SWITCHES[$((switches_idx++))]="x"	# save the processed switch
          CONFIG["x"]="$OPTARG";;            # save the argument of the switch
 
@@ -307,7 +260,7 @@ function readParams()
 
       y) # YMIN
 		 [ -z "$OPTARG" ] && error "the value of the switch -y was not provided"
-		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || $OPTARG == "min" ]] && { # none of acceptable values
+		 ! [[ "$OPTARG" =~ ^-?[0-9]+$ || "$OPTARG" =~ ^-?[0-9]+\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ || "$OPTARG" == "auto" || "$OPTARG" == "min" ]] && { # none of acceptable values
 		   error "wrong argument of the switch -y"; }
          SWITCHES[$((switches_idx++))]="y"	# save the processed switch
          CONFIG["y"]="$OPTARG";;            # save the argument of the switch
@@ -529,8 +482,8 @@ function readConfig()
 #
 
 
-  local ret             # for checking values of the configuration directives
-  local directives=0    # number of processed configuration directives
+  local ret             # for checking values of the directives
+  local directives=0    # number of processed directives
 
   # ==================================
   # TIMEFORMAT
@@ -558,19 +511,29 @@ function readConfig()
   
   # ==================================
   #XMAX
-  # DOPLNIT KONKRETNI HODNOTY !!!
   if ! [[ "${SWITCHES[@]}" =~ X ]]	# check if this particular switch was processed on command line
   then
     ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/[[:space:]]*#.*$//; $p')
 
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
 
-    echo "XMAX:: ret: $ret"
+      if ! [[ "$ret" == "auto" || "$ret" == "max" ]] # none of acceptable text values
+      then
+        # there may be specific value, need to be checked
 
-    # TOTO PREDELAT ---> "RET" == "" JE NESMYSL !!!
+        [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
+          error "wrong argument of the Xmax directive"; }
 
-    #! [[ "$ret" == "auto" || "$ret" == "max" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
-    #  error "wrong argument of the Xmax directive in configuration file \"$1\""; }
-
+        # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+        [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the directive Xmax in the configuration file \"$1\" does not match"
+      fi
+      
+      # zde uz je vstup overen
+      CONFIG["X"]="$ret"
+      ((directives++))
+      verbose "value of the directive Xmax: $ret"
+    fi
   fi
   
   # ==================================
@@ -580,13 +543,25 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; s/[[:space:]]*#.*$//; $p')
 
-    echo "XMIN:: ret: $ret"
+    if [[ "$ret" != "" ]]   # was provided in configuration file
+    then
 
-    # TOTO PREDELAT ---> "RET" == "" JE NESMYSL !!!
+      if ! [[ "$ret" == "auto" || "$ret" == "min" ]] # none of acceptable text values
+      then
+        # there may be specific value, need to be checked
 
-    #! [[ "$ret" == "auto" || "$ret" == "min" || "$ret" == "" ]] && {  # none of acceptable values or the directive was not found
-    #  error "wrong argument of the Xmin directive in configuration file \"$1\""; }
+        [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
+          error "wrong argument of the Xmin directive"; }
 
+        # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+        [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the directive Xmin in the configuration file \"$1\" does not match"
+      fi
+      
+      # zde uz je vstup overen
+      CONFIG["x"]="$ret"
+      ((directives++))
+      verbose "value of the directive Xmin: $ret"
+    fi
   fi
 
   # ==================================
@@ -604,7 +579,7 @@ function readConfig()
 
       CONFIG["Y"]="$ret"
       ((directives++))
-      verbose "value of the configuration directive Ymax: $ret"
+      verbose "value of the directive Ymax: $ret"
     fi
   fi
 
@@ -623,7 +598,7 @@ function readConfig()
       
       CONFIG["y"]="$ret"
       ((directives++))
-      verbose "value of the configuration directive Ymin: $ret"
+      verbose "value of the directive Ymin: $ret"
     fi
   fi
 
@@ -641,7 +616,7 @@ function readConfig()
       
       CONFIG["S"]="$ret"
       ((directives++))
-      verbose "value of the configuration directive Speed: $ret"
+      verbose "value of the directive Speed: $ret"
     fi
   fi
 
@@ -659,7 +634,7 @@ function readConfig()
 
       CONFIG["T"]="$ret"
       ((directives++))
-      verbose "value of the configuration directive Time: $ret"
+      verbose "value of the directive Time: $ret"
     fi
   fi
 
@@ -677,7 +652,7 @@ function readConfig()
 
       CONFIG["F"]="$ret"
       ((directives++))
-      verbose "value of the configuration directive FPS: $ret"
+      verbose "value of the directive FPS: $ret"
     fi
   fi
 
@@ -702,7 +677,7 @@ function readConfig()
     then
       CONFIG["l"]="$ret"
       ((directives++))
-      verbose "value of the configuration directive Legend: $ret"
+      verbose "value of the directive Legend: $ret"
     fi
   fi
 
@@ -769,7 +744,7 @@ function readConfig()
     then
       CONFIG["n"]="$ret"
       ((directives++))
-      verbose "value of the configuration directive Name: $ret"
+      verbose "value of the directive Name: $ret"
     fi
   fi
   
@@ -800,7 +775,7 @@ function readConfig()
 
   echo "pocet dikretiv: $directives"
 
-  [[ $directives -eq 0 ]] && { warning "provided configuration file \"${CONFIG["f"]}\" does not contain any configuration directives" ; warning "check if the switch was not provided on the command line or if the configuration directive format is correct" ; }
+  [[ $directives -eq 0 ]] && { warning "provided configuration file \"${CONFIG["f"]}\" does not contain any directives" ; warning "check if the switch was not provided on the command line or if the directive format is correct" ; }
 }
 
 
