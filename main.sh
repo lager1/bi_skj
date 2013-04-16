@@ -250,10 +250,18 @@ function readParams()
          
          set -v
          set -x
-         date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9][^::space::]//g')" # zda se, ze toto funguje bez problemu
+         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9][^::space::]//g')" # zda se, ze toto funguje bez problemu
+         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9][^[:space:]]//g')" # zda se, ze toto funguje bez problemu
+         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^[:space:]0-9]//g')" # zda se, ze toto funguje bez problemu
+         #date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^[:space:]0-9]//g')" # zda se, ze toto funguje bez problemu
+
+         # finalni verze, problem s mezerami sice zustava .. date vyhazuje invalid date na argument prepinace -d, ktery obsahuje mezery !!
+         # argument musi byt mez mezer, dulezity je formatovaci retezec !!!!!!!!
+         date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')" # zda se, ze toto funguje bez problemu
 
          #if [[ "$(date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG")" == "$OPTARG" ]]
-         if [[ "$(date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]]
+         #if [[ "$(date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]]
+         if [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]]
          then
            echo "ok, format a argument jsou spravne"
          else
@@ -263,12 +271,12 @@ function readParams()
          set +v
          set +x
 
-         date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG"
-         printf "%s" ${CONFIG["t"]}
-         echo ""
-         echo ""
-         echo ""
-         echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{printf("format %s\n", f); printf("timestamp %s\n", t); }'
+         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG"
+         #printf "%s" ${CONFIG["t"]}
+         #echo ""
+         #echo ""
+         #echo ""
+         #echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{printf("format %s\n", f); printf("timestamp %s\n", t); }'
          
          
          ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] && {  # none of acceptable values
