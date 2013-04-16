@@ -182,7 +182,7 @@ function readParams()
 
   [[ $# -lt 2 ]] && usage     # print how to use
 
-  while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
+  while getopts ":t:X:x:Y:y:S:T:F:c:l:g:e:f:n:v" opt  	# cycle for processing the switches
   do
    case "$opt" in
       t) # TIMEFORM
@@ -292,8 +292,23 @@ function readParams()
          
          # kontrola hodnoty
          # pozor na + a -
-          
-		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
+
+         # muze byt napriklad takto: -c x=09/04/01 -c x=09/09/01 -c y=500:y=590:y=600:x=09/07/01
+         # 
+         #
+         #
+         #
+
+         ! [[ "$OPTARG" =~ ^y=\+?[0-9]+$  || "$OPTARG" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$OPTARG" =~ ^y=-?[0-9]+$ || "$OPTARG" =~ ^y=-?[0-9]+\.[0-9]+$ ]] && error "wrong argument of the switch -c"
+
+
+         SWITCHES[$((switches_idx++))]="c"	# save the processed switch
+
+
+         CRITICALVALUES[$((crit_val_idx++))]="$OPTARG" # save the argument of the switch
+         CONFIG["c"]="${CRITICALVALUES[@]}"              # save the argument of the switch , this way it can be displayed by verbose
+         echo "CONFIG[c]: ${CONFIG["c"]}"
+         ;;
 
       l) # LEGEND		 
 		 [ -z "$OPTARG" ] && error "the value of the switch -l was not provided"
