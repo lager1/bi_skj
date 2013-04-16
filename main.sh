@@ -180,6 +180,8 @@ function readParams()
   local eff_params_idx=0    # indexing of $EFFECTPARAMS
   local crit_val_idx=0      # indexing of $CRITICALVALUES
 
+  #local ret                 # 
+
   [[ $# -lt 2 ]] && usage     # print how to use
 
   while getopts ":t:X:x:Y:y:S:T:F:l:g:e:f:n:v" opt  	# cycle for processing the switches
@@ -222,7 +224,50 @@ function readParams()
          
          #awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{print strftime(f, t)}'
          
+         # google rika neco jako sort -k2M -k3 -k4
+         # hm hm .. ?
+         # --> dulezitosti jednotlivych klicu
+         # 
+         # 
+         # 
+         # 
          
+         echo "OPTARG: $OPTARG"
+         #date "+$(printf "%s" ${CONFIG["t"]})"  # -> timto dostaneme aktualni datum ve formatu, ktery byl definovan
+         # --> je treba pouze jeste doplnit konkretni argument --> datum a zkontrolovat, ze se shoduje se zadanym argumentem
+         #date "+$(printf "%s" ${CONFIG["t"]})"
+         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG"    -> definovany format a zadany argument, musi se shodovat s tim, co bylo zadano na radce, jinak je problem ve formatu nebo argumentu
+
+
+         # nastava problem s oddelovaci mezi jednotlivymi formatovacimi retezci -> chtelo by to pro date odstanit vsechny nenumericke znaky
+
+         echo "spravne definovane datum v definovanem formatu: "
+         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')"
+         #date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')" # zda se, ze toto funguje bez problemu
+         #(date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG")
+         # je treba ale zase zachovat mezery -> asi obecne space
+         
+         
+         set -v
+         set -x
+         date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9][^::space::]//g')" # zda se, ze toto funguje bez problemu
+
+         #if [[ "$(date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG")" == "$OPTARG" ]]
+         if [[ "$(date "+$(printf "%s" ${CONFIG["t"]})" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]]
+         then
+           echo "ok, format a argument jsou spravne"
+         else
+           echo "fail"
+         fi
+
+         set +v
+         set +x
+
+         date "+$(printf "%s" ${CONFIG["t"]})" -d "$OPTARG"
+         printf "%s" ${CONFIG["t"]}
+         echo ""
+         echo ""
+         echo ""
          echo "$OPTARG" | awk -v f="${CONFIG["t"]}" -v t="$OPTARG" '{printf("format %s\n", f); printf("timestamp %s\n", t); }'
          
          
@@ -428,9 +473,17 @@ function checkFiles()
       
       # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
 
-      ret=$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}))
+      #ret=$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}))
       #[[ $(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null) -ne 0 ]] && { echo "diff"; MULTIPLOT="false"; return; }
 
+      
+      
+      
+      set -v
+      set -x
+      
+      [[ "$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null)" != "0" ]] && { echo "diff"; MULTIPLOT="false"; return; }
+      
       [[ "$ret" != "" ]] && { MULTIPLOT="false"; return; }
 
     done
@@ -453,6 +506,7 @@ function checkFiles()
 # when an error occurs it is sent to the error function
 
 # je dovolen prazdny(neobsahujici zadne direktivy) konfiguracni soubor?
+# jeste doplnit ((directives++)) k nedopsanym direktivam
 
 #-------------------------------------------------------------------------------
 function readConfig()
@@ -541,6 +595,7 @@ function readConfig()
         error "wrong argument of the Ymax directive in configuration file \"$1\""; }
 
       CONFIG["Y"]="$ret"
+      ((directives++))
       verbose "value of the configuration directive Ymax: $ret"
     fi
   fi
@@ -559,6 +614,7 @@ function readConfig()
         error "wrong argument of the Ymin directive in configuration file \"$1\""; }
       
       CONFIG["y"]="$ret"
+      ((directives++))
       verbose "value of the configuration directive Ymin: $ret"
     fi
   fi
@@ -576,6 +632,7 @@ function readConfig()
         error "wrong argument of the Speed directive in configuration file \"$1\""; }
       
       CONFIG["S"]="$ret"
+      ((directives++))
       verbose "value of the configuration directive Speed: $ret"
     fi
   fi
@@ -593,6 +650,7 @@ function readConfig()
         error "wrong argument of the Time directive in configuration file \"$1\""; }
 
       CONFIG["T"]="$ret"
+      ((directives++))
       verbose "value of the configuration directive Time: $ret"
     fi
   fi
@@ -610,6 +668,7 @@ function readConfig()
         error "wrong argument of the FPS directive in configuration file \"$1\""; }
 
       CONFIG["F"]="$ret"
+      ((directives++))
       verbose "value of the configuration directive FPS: $ret"
     fi
   fi
@@ -634,6 +693,7 @@ function readConfig()
     if [[ "$ret" != "" ]]   # was provided in configuration file
     then
       CONFIG["l"]="$ret"
+      ((directives++))
       verbose "value of the configuration directive Legend: $ret"
     fi
   fi
@@ -700,6 +760,7 @@ function readConfig()
     if [[ "$ret" != "" ]]   # was provided in configuration file
     then
       CONFIG["n"]="$ret"
+      ((directives++))
       verbose "value of the configuration directive Name: $ret"
     fi
   fi
@@ -728,7 +789,10 @@ function readConfig()
  #   ERRORS=$TMP	# ok, direktiva je evedena a ma spravnou hodnotu
   fi
 
-  [[ $directives -eq 0 ]] && warning "provided configuration file \"${CONFIG["f"]}\" does not contain any configuration directives"
+
+  echo "pocet dikretiv: $directives"
+
+  [[ $directives -eq 0 ]] && { warning "provided configuration file \"${CONFIG["f"]}\" does not contain any configuration directives" ; warning "check if the switch was not provided on the command line or if the configuration directive format is correct" ; }
 }
 
 
@@ -775,7 +839,7 @@ function readConfig()
   readParams "$@"
   shift `expr $OPTIND - 1`	# posun na prikazove radce
 
-  verbose "processed switches ${SWITCHES[@]}"         # report processed switches
+  verbose "processed switches: ${SWITCHES[@]}"         # report processed switches
 
   for i in "${SWITCHES[@]}"
   do
@@ -785,7 +849,12 @@ function readConfig()
   readConfig "${CONFIG["f"]}"   # read the configuration file
 
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
-  verbose "data files ${DATA[@]}"   # report data files
+
+# debug
+  set +v
+  set +x
+
+  verbose "data files: ${DATA[@]}"   # report data files
 
 
   # pouze debug
