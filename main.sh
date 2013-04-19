@@ -164,9 +164,6 @@ function error()
 #=====================
 
 
-
-
-
 #-------------------------------------------------------------------------------
 # function for reading and evaluation of parameters
 # parameters:
@@ -494,14 +491,15 @@ function readConfig()
   # TIMEFORMAT
   #if ! [[ "${SWITCHES[@]}" =~ t && "$(grep -i "TimeFormat")" != "" ]]	# check if this particular switch was processed on the command line
 
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*TimeFormat .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ t || "$(grep -i "^[^#]*TimeFormat .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
 
     # znak # predstavuje komentar az do konce radku
     # prazdne radky jsou nevyznamne, stejne tak jako radky obsahujici pouze mezery a taby
     # na jednom radku maximalne jedna direktiva             ==== JAK TO RESIT ?????
     # Direktiva má právě jednu hodnotu (odpovídá jednomu arumentu na příkazové řádce). - toto by se dalo jednoduse resit pomoci wc, ale problem s gnuplotparams -> viz ukazkovy konfiguracni soubor
-    
+   
+   
 
     ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; s/[[:space:]]*#.*$//; $p')
     [[ "$ret" == "" ]] && error "value of the directive TimeFormat was not provided in the configuration file \"$1\""
@@ -517,11 +515,19 @@ function readConfig()
   fi
   
   
+
+  # debug
+  set -v
+  set -x
+
   # ==================================
   #XMAX
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*Xmax .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ X || "$(grep -i "^[^#]*Xmax .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/[[:space:]]*#.*$//; $p')
+
+    warning "test"
+    
 
     [[ "$ret" == "" ]] && error "value of the Xmax directive was not provided in the configuration file \"$1\""
 
@@ -543,7 +549,7 @@ function readConfig()
   
   # ==================================
   #XMIN
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*Xmin .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ x || "$(grep -i "^[^#]*Xmin .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; s/[[:space:]]*#.*$//; $p')
 
@@ -571,10 +577,6 @@ function readConfig()
   then
     
     ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; s/[[:space:]]*#.*$//; $p')
-    
-    # debug
-    warning "$ret"
-
 
     [[ "$ret" == "" ]] && error "value of the Ymax directive was not provided in the configuration file \"$1\""
     ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
@@ -587,7 +589,7 @@ function readConfig()
 
   # ==================================
   # YMIN
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*Ymin .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ y || "$(grep -i "^[^#]*Ymin .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
 
     ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/[[:space:]]*#.*$//; $p')
@@ -603,7 +605,7 @@ function readConfig()
 
   # ==================================
   # SPEED
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*Speed .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ S || "$(grep -i "^[^#]*Speed .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
@@ -618,7 +620,7 @@ function readConfig()
 
   # ==================================
   # TIME
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*Time .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ T || "$(grep -i "^[^#]*Time .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
     
@@ -633,7 +635,7 @@ function readConfig()
 
   # ==================================
   # FPS
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*FPS .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ F || "$(grep -i "^[^#]*FPS .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
@@ -648,7 +650,7 @@ function readConfig()
 
   # ==================================
   # CRITICALVALUE
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*CriticalValue .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ c || "$(grep -i "^[^#]*CriticalValue .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/[[:space:]]*#.*$//; $p')
   
@@ -660,7 +662,7 @@ function readConfig()
 
   # ==================================
   # LEGEND
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*Legend .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ l || "$(grep -i "^[^#]*Legend .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; s/[[:space:]]*#.*$//; $p')
   
@@ -672,7 +674,7 @@ function readConfig()
 
   # ==================================
   # GNUPLOTPARAMS
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*GnuplotParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ g || "$(grep -i "^[^#]*GnuplotParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/[[:space:]]*#.*$//; $p')
 
@@ -685,7 +687,7 @@ function readConfig()
   # ==================================
   # EFFECTPARAMS
   # direktiva muze byt uvedene vicekrat, kontrola neni potreba
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*EffectParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ e || "$(grep -i "^[^#]*EffectParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/[[:space:]]*#.*$//; $p')
 
@@ -716,7 +718,7 @@ function readConfig()
 
   # ==================================
   # NAME
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*Name .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ n || "$(grep -i "^[^#]*Name .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; s/[[:space:]]*#.*$//; $p')
   
@@ -728,7 +730,7 @@ function readConfig()
   
   # ==================================
   # ERRORS
-  if ! [[ "${SWITCHES[@]}" =~ Y || "$(grep -i "^[^#]*IgnoreErros .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ E || "$(grep -i "^[^#]*IgnoreErros .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/[[:space:]]*#.*$//; $p')
 
@@ -839,6 +841,9 @@ function checkValues()
   done
 
   readConfig "${CONFIG["f"]}"   # read the configuration file
+# debug
+  set +v
+  set +x
   
   checkValues               # check provided values of the switches or directives from the configuration file
 
