@@ -201,18 +201,15 @@ function readParams()
          # hm hm .. ?
          # --> dulezitosti jednotlivych klicu
          # 
+
+
+         # napisu nekam do manualu, ze kontrolni sekvence %t musi byt vzdy oddelene nejakym znakem
         
          # doplnit kontrolu, ze X je vetsi nez x
          
          if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] # none of acceptable text values
          then
            # there may be specific value, needs to be checked
-
-           # debug
-           #warning "$OPTARG"
-           # debug
-           #set -v
-           #set -x
 
            #abc="$(echo "$OPTARG" | grep ".*[:digit:].*" )"
            #warning "$abc"
@@ -225,18 +222,25 @@ function readParams()
            #[[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
            #  error "wrong argument of the switch -X"; }
 
-           
-           # debug
-           #set -v
-           #set -x
+           # first check if the format of the argument is correct, then check by date
+           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+
+
+           local ret=""
+
+           for((i = 0; i < ${#CONFIG["t"]}; i++))   # seperate control sequences, that are just after each other, by space
+           do
+             if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
+             then
+               ret="$ret${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
+               i=$((i + 3))
+             else
+               ret="$ret${OPTARG:$i:1}"
+             fi
+           done
 
            # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           #[[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"   
-
-           # vylepsena forma ?? -> podrobit testum
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9[:space:]\:]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
-
-
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
 
          fi
 
@@ -262,11 +266,24 @@ function readParams()
            #[[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
            #  error "wrong argument of the switch -x"; }
 
-           # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           #[[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"   
+           # first check if the format of the argument is correct, then check by date
+           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
 
-           # vylepsena verze snad
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9[:space:]\:]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"
+           local ret=""
+
+           for((i = 0; i < ${#CONFIG["t"]}; i++))   # seperate control sequences, that are just after each other, by space
+           do
+             if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
+             then
+               ret="$ret${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
+               i=$((i + 3))
+             else
+               ret="$ret${OPTARG:$i:1}"
+             fi
+           done
+
+           # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"
 
 
 
@@ -566,11 +583,28 @@ function readConfig()
     then
       # there may be specific value, needs to be checked
 
-      [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
-        error "wrong argument of the Xmax directive"; }
+      #[[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
+      #  error "wrong argument of the Xmax directive"; }
+
+      # first check if the format of the argument is correct, then check by date
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+
+      local return=""
+
+      for((i = 0; i < ${#CONFIG["t"]}; i++))   # seperate control sequences, that are just after each other, by space
+      do
+        if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
+        then
+          return="$return${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
+          i=$((i + 3))
+        else
+          return="$return${OPTARG:$i:1}"
+        fi
+      done
 
       # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
+      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$return" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
+
     fi
     
     CONFIG["X"]="$ret"
@@ -590,11 +624,28 @@ function readConfig()
     then
       # there may be specific value, needs to be checked
 
-      [[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
-        error "wrong argument of the Xmin directive"; }
+      #[[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
+      #  error "wrong argument of the Xmin directive"; }
+
+      # first check if the format of the argument is correct, then check by date
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+
+      local return=""
+
+      for((i = 0; i < ${#CONFIG["t"]}; i++))   # seperate control sequences, that are just after each other, by space
+      do
+        if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
+        then
+          return="$return${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
+          i=$((i + 3))
+        else
+          return="$return${OPTARG:$i:1}"
+        fi
+      done
 
       # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's/[^0-9]//g')")" == "$ret" ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
+      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$return" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
+
     fi
     
     CONFIG["x"]="$ret"
