@@ -208,11 +208,36 @@ function readParams()
          then
            # there may be specific value, needs to be checked
 
-           [[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
-             error "wrong argument of the switch -X"; }
+           # debug
+           #warning "$OPTARG"
+           # debug
+           #set -v
+           #set -x
+
+           #abc="$(echo "$OPTARG" | grep ".*[:digit:].*" )"
+           #warning "$abc"
+
+           # tohle se chova nejak povidne - lokalne to nejdriv neco vraci, pozdeji ne
+           # na jinych strojich se to tvari, ze to je v poradku
+           # hm ?
+           #
+           
+           #[[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
+           #  error "wrong argument of the switch -X"; }
+
+           
+           # debug
+           #set -v
+           #set -x
 
            # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"   
+           #[[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"   
+
+           # vylepsena forma ?? -> podrobit testum
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9[:space:]\:]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
+
+
+
          fi
 
          SWITCHES[$((switches_idx++))]="X"	# save the processed switch
@@ -229,11 +254,26 @@ function readParams()
          then
            # there may be specific value, needs to be checked
 
-           [[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
-             error "wrong argument of the switch -x"; }
+           # tohle se chova nejak povidne - lokalne to nejdriv neco vraci, pozdeji ne
+           # na jinych strojich se to tvari, ze to je v poradku
+           # hm ?
+           #
+
+           #[[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
+           #  error "wrong argument of the switch -x"; }
 
            # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"   
+           #[[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"   
+
+           # vylepsena verze snad
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG" | sed 's/[^0-9[:space:]\:]//g')")" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"
+
+
+
+           # ----------
+           # ----------
+           # ---------- TUTO VYLEPSENOU VERZI JESTE DOPLNIT DO FUNKCE PRO CTENI KONFIGURACE !!!!!
+
          fi
 
          # zde uz je vstup overen
@@ -513,21 +553,12 @@ function readConfig()
     #[[ $( -n '/^[^#].*TimeFormat/Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p') ]]
     # kontrola hodnoty - jak na to v tomto pripade?
   fi
-  
-  
-
-  # debug
-  set -v
-  set -x
 
   # ==================================
   #XMAX
   if ! [[ "${SWITCHES[@]}" =~ X || "$(grep -i "^[^#]*Xmax .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/[[:space:]]*#.*$//; $p')
-
-    warning "test"
-    
 
     [[ "$ret" == "" ]] && error "value of the Xmax directive was not provided in the configuration file \"$1\""
 
@@ -695,25 +726,6 @@ function readConfig()
     
     [[ "$ret" == "" ]] && error "value of the EffectParams directive was not provided in the configuration file \"$1\""
 
-  #[ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /EffectParams/' | wc -w` -gt 2 ] && 
-  #{ echo "direktiva EffectParams obsahuje vice nez jedno klicove slovo"; exit 1; }    		# direktiva obsahuje vice klicovych slov
-  #TMP=`cat $1 | grep ^[a-Z] | grep -i "EffectParams" | awk '{print $2}'`
-  #TMP=`echo "$TMP" | tr ":" " "`	# zmena oddelovace na mezeru, abychom mohli iterovat
-  #if [[ ! $TMP =~ ^$ ]]		# neni prazdny retezec
-  #then
-  #  A=0
-  #  for i in $TMP
-  #  do
-  #     if ! [[ $i =~ ^bgcolor=.*$ || $i =~ ^changebgcolor$ || $i =~ ^changespeed=[1-5]$ ]]
-  #     then
-  #       echo "spatny format direktivy EffectParams v zadanem konfiguracnim souboru"
-  #       exit 1;
-  #    fi
-  #    EFFECTPARAMS[$A]=$i	# ok, uloz do pole
-  #    ((A++))
-  #  done
-  #  SWITCHES[$switches_idx]="e"	# zapamutujeme si zpracovanou direktivu pro kontrolu, zda byla zadana hodnota
-  #  ((switches_idx++))
   fi
 
   # ==================================
@@ -755,9 +767,13 @@ function readConfig()
   fi
 
 
-  echo "pocet dikretiv: $directives"
+  if [[ $directives -eq 0 ]]
+  then
+    warning "provided configuration file \"${CONFIG["f"]}\" does not contain any directives" ; warning "check if the switch was not provided on the command line or if the directive format is correct" ;
 
-  [[ $directives -eq 0 ]] && { warning "provided configuration file \"${CONFIG["f"]}\" does not contain any directives" ; warning "check if the switch was not provided on the command line or if the directive format is correct" ; }
+  else
+    verbose "number of processed directives: $directives"
+  fi
 }
 
 
@@ -776,16 +792,15 @@ function checkValues()
 
   if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" && "${CONFIG["y"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]
   then
-
-
-    warning "konkretni hodnoty"
-    warning "${CONFIG["Y"]} , ${CONFIG["y"]}"
-    #echo "konkretni hodnoty"
+    [[ $(echo "${CONFIG["Y"]} <= ${CONFIG["y"]}" | bc) -eq 1 ]] && error "Value of Ymin is greater or equal than value of Ymax"
   fi
 
+  if [[ "${CONFIG["X"]}" != "auto" && "${CONFIG["X"]}" != "max" && "${CONFIG["x"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]
+  then
 
-  #[[ "${CONFIG["X"]}" != "auto" && "${CONFIG["X"]}" != "max" ]] && echo ""
- 
+    # convert to unix timestamp, then compare
+    [[ $(echo "$(date "+%s" -d "$(echo "${CONFIG["X"]}" | sed 's/[^0-9[:space:]\:]//g')") <= $(date "+%s" -d "$(echo "${CONFIG["x"]}" | sed 's/[^0-9[:space:]\:]//g')")" | bc) -eq 1 ]] && error "Value of Xmin is greater or equal than value of Xmax"
+  fi
 }
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
