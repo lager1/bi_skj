@@ -199,24 +199,12 @@ function readParams()
          # google rika neco jako sort -k2M -k3 -k4
          # hm hm .. ?
          # --> dulezitosti jednotlivych klicu
-         # 
          
          # napisu nekam do manualu, ze kontrolni sekvence %t musi byt vzdy oddelene nejakym znakem
-        
-         # doplnit kontrolu, ze X je vetsi nez x
          
          if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] # none of acceptable text values
          then
            # there may be specific value, needs to be checked
-
-           # tohle se chova nejak povidne - lokalne to nejdriv neco vraci, pozdeji ne
-           # na jinych strojich se to tvari, ze to je v poradku
-           # hm ?
-           #
-           
-           #[[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
-           #  error "wrong argument of the switch -X"; }
-
            # first check if the format of the argument is correct, then check by date
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
 
@@ -244,22 +232,9 @@ function readParams()
       x) # XMIN 
 		 [ -z "$OPTARG" ] && error "the value of the switch -x was not provided"
 
-         # TADY JESTE DODELAT KONTRENI HODNOTU !!!
-         # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
-         # TADY JESTE MUZE NASTAT PROBLEM S TIM, ZE -X BUDE UVEDENO DRIVE NEZ -t A PAK BY MOHL NASTAT PROBLEM !!!
-
          if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "min" ]] # none of acceptable text values
          then
            # there may be specific value, needs to be checked
-
-           # tohle se chova nejak povidne - lokalne to nejdriv neco vraci, pozdeji ne
-           # na jinych strojich se to tvari, ze to je v poradku
-           # hm ?
-           #
-
-           #[[ "$(echo "$OPTARG" | grep [0-9])" == "" ]] && {  # just some text
-           #  error "wrong argument of the switch -x"; }
-
            # first check if the format of the argument is correct, then check by date
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -x does not match"
 
@@ -532,10 +507,6 @@ function readConfig()
     if ! [[ "$ret" == "auto" || "$ret" == "max" ]] # none of acceptable text values
     then
       # there may be specific value, needs to be checked
-
-      #[[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
-      #  error "wrong argument of the Xmax directive"; }
-
       # first check if the format of the argument is correct, then check by date
       [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
 
@@ -573,10 +544,6 @@ function readConfig()
     if ! [[ "$ret" == "auto" || "$ret" == "min" ]] # none of acceptable text values
     then
       # there may be specific value, needs to be checked
-
-      #[[ "$(echo "$ret" | grep [0-9])" == "" ]] && {  # just some text
-      #  error "wrong argument of the Xmin directive"; }
-
       # first check if the format of the argument is correct, then check by date
       [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
 
