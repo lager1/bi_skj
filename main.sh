@@ -178,7 +178,7 @@ function readParams()
   local eff_params_idx=0    # indexing of $EFFECTPARAMS
   local crit_val_idx=0      # indexing of $CRITICALVALUES
 
-  [[ $# -lt 2 ]] && usage     # print how to use
+  [[ $# -lt 1 ]] && usage     # print how to use
 
   while getopts ":t:X:x:Y:y:S:T:F:c:l:g:e:f:n:v" opt  	# cycle for processing the switches
   do
