@@ -184,9 +184,8 @@ function readParams()
   do
    case "$opt" in
       t) # TIMEFORM
-         # ma smysl tu nejak testovat hodnotu v OPTARG, pokud ano, tak jak?
-         
 		 [ -z "$OPTARG" ] && error "the value of the switch -t was not provided"
+         [[ "$OPTARG" =~ %[dHjklmMSuUVwWyY] ]] || warning "make sure you have entered correct Timeformat, it does not contain any control sequences"
          SWITCHES[$((switches_idx++))]="t"	# save the processed switch
          CONFIG["t"]="$OPTARG";;            # save the argument of the switch
 
@@ -201,8 +200,7 @@ function readParams()
          # hm hm .. ?
          # --> dulezitosti jednotlivych klicu
          # 
-
-
+         
          # napisu nekam do manualu, ze kontrolni sekvence %t musi byt vzdy oddelene nejakym znakem
         
          # doplnit kontrolu, ze X je vetsi nez x
@@ -210,9 +208,6 @@ function readParams()
          if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] # none of acceptable text values
          then
            # there may be specific value, needs to be checked
-
-           #abc="$(echo "$OPTARG" | grep ".*[:digit:].*" )"
-           #warning "$abc"
 
            # tohle se chova nejak povidne - lokalne to nejdriv neco vraci, pozdeji ne
            # na jinych strojich se to tvari, ze to je v poradku
@@ -224,7 +219,6 @@ function readParams()
 
            # first check if the format of the argument is correct, then check by date
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
-
 
            local ret=""
 
@@ -267,7 +261,7 @@ function readParams()
            #  error "wrong argument of the switch -x"; }
 
            # first check if the format of the argument is correct, then check by date
-           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -x does not match"
 
            local ret=""
 
@@ -285,16 +279,8 @@ function readParams()
            # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
            [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"
 
-
-
-           # ----------
-           # ----------
-           # ---------- TUTO VYLEPSENOU VERZI JESTE DOPLNIT DO FUNKCE PRO CTENI KONFIGURACE !!!!!
-
          fi
 
-         # zde uz je vstup overen
-         
          SWITCHES[$((switches_idx++))]="x"	# save the processed switch
          CONFIG["x"]="$OPTARG";;            # save the argument of the switch
 
@@ -385,9 +371,6 @@ function readParams()
 		 ! [ -f $OPTARG ] && error "provided configuration file \"$OPTARG\" is not a regular file"
 		 ! [ -r $OPTARG ] && error "provided configuration file \"$OPTARG\" cannot be read"
 
-         # tady jeste muze nastat situace, ze soubor lze cist -> ale cesta je takova, ze ho nelze napr ani listovat
-         # => /root/.bashrc
-
          SWITCHES[$((switches_idx++))]="f"	# save the processed switch
          CONFIG["f"]="$OPTARG";;            # save the argument of the switch
 
@@ -407,31 +390,12 @@ function readParams()
   done
 }
 #-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# function for checking the data files
+# function for checking data files
 #	1) "$@" - all remaining arguments, which vere provided on execution - data files
 # function checks if the files exist and if they are readable
 # result of the processing is saved in the global variables
-# mohlo by se zkoumat zda na sebe i napr nejak navazuji ?
-# dale by bylo vhodne konktrolovat zda neni soubor na webu, pokud ano, tak stahnout abychom s nim mohli dale pracovat
-# je nutne ukladat data nekam do docasneho umisteni
-#
-# -> mktemp
-#
-
-#-------------------------------------------------------------------------------
-
-
-
-
-#-------------------------------------------------------------------------------
-# funkce pro kontrolu datovych souboru
-#	1) "$@" - vsechny zbyle argumenty, ktere byly zadany pri spusteni - datove soubory
-# probiha pouze kontrola, zda soubory existuji, jsou citelne
-# mohlo by se zkoumat zda na sebe i napr nejak navazuji ?
+# if the files are on the web, they are downloaded to temporary files
+# checks if the files are continuous
 #-------------------------------------------------------------------------------
 function checkFiles()
 {
@@ -490,6 +454,7 @@ function checkFiles()
       
       # na toto se jeste poptat, zda je implicitne timeformat a hodnota oddelena mezerou
       # dale, muze byt vice hodnot pro jeden casovy udaj v jednom souboru ?
+      # pocitame, ze ano
       
       # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
 
@@ -507,14 +472,15 @@ function checkFiles()
       [[ "$ret" != "" ]] && { MULTIPLOT="false"; return; }
 
     done
+  
+  else
+    MULTIPLOT="false"
   fi
+ 
   
   MULTIPLOT="true"
 
-
-
   # tady jeste ty soubory seradit ve spravnem poradi dle casu, pokud na sebe nenavazuji ?
-
 }
 
 
@@ -524,10 +490,7 @@ function checkFiles()
 #	1) the configuration file
 # the result of the processing is saved in the global variables
 # when an error occurs it is sent to the error function
-
-# je dovolen prazdny(neobsahujici zadne direktivy) konfiguracni soubor?
 # jeste doplnit ((directives++)) k nedopsanym direktivam
-
 #-------------------------------------------------------------------------------
 function readConfig()
 {
@@ -543,32 +506,19 @@ function readConfig()
   local ret             # for checking values of the directives
   local directives=0    # number of processed directives
 
-
   # ==================================
   # TIMEFORMAT
-  #if ! [[ "${SWITCHES[@]}" =~ t && "$(grep -i "TimeFormat")" != "" ]]	# check if this particular switch was processed on the command line
-
   if ! [[ "${SWITCHES[@]}" =~ t || "$(grep -i "^[^#]*TimeFormat .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
-
-    # znak # predstavuje komentar az do konce radku
-    # prazdne radky jsou nevyznamne, stejne tak jako radky obsahujici pouze mezery a taby
-    # na jednom radku maximalne jedna direktiva             ==== JAK TO RESIT ?????
-    # Direktiva má právě jednu hodnotu (odpovídá jednomu arumentu na příkazové řádce). - toto by se dalo jednoduse resit pomoci wc, ale problem s gnuplotparams -> viz ukazkovy konfiguracni soubor
    
-   
-
     ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; s/[[:space:]]*#.*$//; $p')
     [[ "$ret" == "" ]] && error "value of the directive TimeFormat was not provided in the configuration file \"$1\""
     
-    echo "TIMEFORMAT:: ret: '$ret'"
+    [[ "$ret" =~ %[dHjklmMSuUVwWyY] ]] || warning "make sure you have entered correct Timeformat, it does not contain any control sequences"
 
-
-    # nezacina znakem #, pak je cokoliv, pak TimeFormat
-    # hodnota a direktiva jsou oddeleny pomoci mezery, tabulatoru pripadne jejich kombinaci
-
-    #[[ $( -n '/^[^#].*TimeFormat/Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; $p') ]]
-    # kontrola hodnoty - jak na to v tomto pripade?
+    CONFIG["t"]="$ret"
+    ((directives++))
+    verbose "value of the TimeFormat directive: $ret"
   fi
 
   # ==================================
@@ -587,7 +537,7 @@ function readConfig()
       #  error "wrong argument of the Xmax directive"; }
 
       # first check if the format of the argument is correct, then check by date
-      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
 
       local return=""
 
@@ -595,15 +545,15 @@ function readConfig()
       do
         if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
         then
-          return="$return${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
+          return="$return${ret:$i:2} ${ret:$((i + 2)):2}"
           i=$((i + 3))
         else
-          return="$return${OPTARG:$i:1}"
+          return="$return${ret:$i:1}"
         fi
       done
 
       # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$return" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
+      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$return" | sed 's$/$$g')" 2> /dev/null)" == "$ret" ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
 
     fi
     
@@ -628,7 +578,7 @@ function readConfig()
       #  error "wrong argument of the Xmin directive"; }
 
       # first check if the format of the argument is correct, then check by date
-      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
 
       local return=""
 
@@ -636,15 +586,15 @@ function readConfig()
       do
         if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
         then
-          return="$return${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
+          return="$return${ret:$i:2} ${ret:$((i + 2)):2}"
           i=$((i + 3))
         else
-          return="$return${OPTARG:$i:1}"
+          return="$return${ret:$i:1}"
         fi
       done
 
       # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$return" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
+      [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$return" | sed 's$/$$g')" 2> /dev/null)" == "$ret" ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
 
     fi
     
@@ -732,14 +682,31 @@ function readConfig()
 
   # ==================================
   # CRITICALVALUE
-  if ! [[ "${SWITCHES[@]}" =~ c || "$(grep -i "^[^#]*CriticalValue .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "$(grep -i "^[^#]*CriticalValue .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/[[:space:]]*#.*$//; $p')
   
-    echo "CRITICALVALUE:: ret: $ret"
-
     [[ "$ret" == "" ]] && error "value of the CriticalValue directive was not provided in the configuration file \"$1\""
+    
+    for i in $(echo "$ret" | tr ":" " ")
+    do
 
+      # check both x and y, x values are in format defined by Timeformat
+      ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//; s/[^0-9]//g')")"$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
+
+      CRITICALVALUES[$((${#CRITICALVALUES[@]} + 1))]="$i" # save the argument of the directive
+      
+      if [[ "${CONFIG["c"]}" == "" ]]
+      then
+        CONFIG["c"]="${CONFIG["c"]}$i"              # save the argument of the switch, this way it can be displayed by verbose
+      else
+        CONFIG["c"]="${CONFIG["c"]} $i"              # save the argument of the switch, this way it can be displayed by verbose
+      fi
+
+    done
+    
+    ((directives++))
+    verbose "value of the directive CriticalValue: $ret"
   fi
 
   # ==================================
@@ -756,7 +723,7 @@ function readConfig()
 
   # ==================================
   # GNUPLOTPARAMS
-  if ! [[ "${SWITCHES[@]}" =~ g || "$(grep -i "^[^#]*GnuplotParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "$(grep -i "^[^#]*GnuplotParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/[[:space:]]*#.*$//; $p')
 
@@ -769,7 +736,7 @@ function readConfig()
   # ==================================
   # EFFECTPARAMS
   # direktiva muze byt uvedene vicekrat, kontrola neni potreba
-  if ! [[ "${SWITCHES[@]}" =~ e || "$(grep -i "^[^#]*EffectParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "$(grep -i "^[^#]*EffectParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
     ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/[[:space:]]*#.*$//; $p')
 
