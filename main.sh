@@ -25,30 +25,8 @@
 #   zkontrolovat funkci na cteni parametru -> jsou definovany vsechny povinne i volitelne prepinace?
 #   jsou vsechny promenne zpracovany spravne ?
 #   
-#   kontrola funkce na cteni konfigurace
-#   je pripustny prazdny konfiguracni soubor?
-#
-#   muzou byt zadavany kladne hodnoty vsectne znamenka +?
-#
-#   kontrola zda ma prepinac zadan nejaky argument -> -prepinac ""
-#   -> hodnota neni definovana
 #
 #   vymyslet novy efekt ?
-
-
-#   funkce na cteni parametru na radce by mela byt ok -> vymyslet na to testy + rovnou je pouzit do finalniho skriptu na testovani
-#
-#   neda se indexovani a inkrementace udelat v ramci jednoho prikazu?
-#
-#   funkci na cteni parametru by mohla zaroven koukat na datove soubory
-#
-#   muze byt vice konfiguracnich souboru najednou?
-#
-#
-#
-#
-
-# udelat print usage, pokud je skript spusten bez parametru ?
 
 
 #
@@ -68,23 +46,7 @@
 
 # Direktiva má právě jednu hodnotu (odpovídá jednomu arumentu na příkazové řádce).  -> jak to resit? v ukazkovem konfiguraku gnuplotparams -> vice slov !!
 
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ j=0
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ sw[$((j++))]="retezec"
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ echo $j
-#1
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ echo $sw[0]
-#retezec[0]
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ echo ${sw[0]}
-#retezec
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ sw[$((j++))]="jiny_retezec"
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ echo ${sw[1]}
-#jiny_retezec
-#lager@maniac:/data/data/skola/6.semestr/skj/semestralka$ echo $j
-#2
-
-
 # je mozne do matematickeho vyhodnoceni zaroven dat znak promenne s specifikovat tak o co se jedna? -> viz prednasky
-
 
 # ma cenu definovat ruzne navratove kody pro ruzne chyby?
 
@@ -92,19 +54,24 @@
 #
 # pridat reakci na signaly -> trap
 
-
-
-
+# napisu nekam do manualu, ze kontrolni sekvence %t musi byt vzdy oddelene nejakym znakem
 
 
 #-------------------------------------------------------------------------------
 # function to print warning message
 # parameters:
-#   function takes one argument, it is printed to the standart output
+#   function takes arbitrary number of arguments
+# all of the parameters ale printed to the standart output
 #-------------------------------------------------------------------------------
 function warning()
 {
-  echo -e "\e[1;33mWARNING: $1\e[0m" >&2    # print in yellow color
+  echo -en "\e[1;33mWARNING: \e[0m"     # print in green color
+
+  for i in "$@"
+  do
+    echo -en "\e[1;33m$i \e[0m"       # print in green color 
+  done
+  echo ""
 }
 #-------------------------------------------------------------------------------
 # function to print how to use this script
@@ -159,11 +126,6 @@ function error()
 #=====================
 #=====================
 #=====================
-#=====================
-#=====================
-#=====================
-
-
 #-------------------------------------------------------------------------------
 # function for reading and evaluation of parameters
 # parameters:
@@ -191,16 +153,6 @@ function readParams()
 
       X) # XMAX
 		 [ -z "$OPTARG" ] && error "the value of the switch -X was not provided"
-		 
-         # TADY JESTE DODELAT KONTRENI HODNOTU !!!
-         # JE TO ZAVISLE NA DEFINOVANEM CASOVEM FORMATU
-         # TADY JESTE MUZE NASTAT PROBLEM S TIM, ZE -X BUDE UVEDENO DRIVE NEZ -t A PAK BY MOHL NASTAT PROBLEM !!!
-         
-         # google rika neco jako sort -k2M -k3 -k4
-         # hm hm .. ?
-         # --> dulezitosti jednotlivych klicu
-         
-         # napisu nekam do manualu, ze kontrolni sekvence %t musi byt vzdy oddelene nejakym znakem
          
          if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] # none of acceptable text values
          then
@@ -221,8 +173,16 @@ function readParams()
              fi
            done
 
+           #warning "tady"
+           #set -v
+           #set -x
+
            # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$:$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
+
+
+
+           #[[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
 
          fi
 
@@ -324,9 +284,17 @@ function readParams()
 
       g) # GNUPLOTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -g was not provided"
-         SWITCHES[$((switches_idx++))]="g"	# save the processed switch
-		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG";; # save the argument of the switch, no value check needed
-   
+
+         if [[ "${CONFIG["g"]}" == "" ]]
+         then
+           CONFIG["g"]="${CONFIG["g"]}$OPTARG"              # save the argument of the switch, this way it can be displayed by verbose
+         else
+           CONFIG["g"]="${CONFIG["g"]} $OPTARG"              # save the argument of the switch, this way it can be displayed by verbose
+         fi
+
+		 GNUPLOTPARAMS[$((gp_params_idx++))]="$OPTARG" # save the argument of the switch, no value check needed
+         ! [[ "${SWITCHES[@]}" =~ g ]] &&	# check if this particular switch was processed on the command line, do not save duplicit values
+           SWITCHES[$((switches_idx++))]="g";;	# save the processed switch
    
    # tady jeste upravit podle efektu !!
       e) # EFFECTPARAMS
@@ -401,27 +369,35 @@ function checkFiles()
       ! [[ -e "$i" ]] && error "provided data file \"$i\" does not exist"
       ! [[ -f "$i" ]] && error "provided data file \"$i\" is not a regular file"
       ! [[ -r "$i" ]] && error "provided data file \"$i\" cannot be read"
-
+        
       DATA[$((data_idx++))]="$i"  # provided data file is ok
     fi
 
   done
 
-# tady pridelat nejakou dalsi kontrolu neceho .. 
-# kontrola poctu zaznamu -> pokud mame vice souboru, tak nas zajima, zda kreslime do jednoho grafu vice krivek
+  # jeste je nutne zkontrolovat, ze se shoduje zadany format timestampu s tim, co je v datovem souboru
+
+  local words=$(head -1 ${DATA[0]} | wc -w)
+  local cols
+
+  for((j = 1; j < "$words"; j++))
+  do
+    cols=$(echo "${cols}${j},")     # add column number
+  done
+
+  # cut off only the fimestamp
+  cols=$(echo "${cols%,}")          # cut off the first , from the left
+
+  # check if the provided TimeFormat is equal with the timestamp in the data file
+  [[ "$(cat "${DATA[0]}" | cut -d " " -f$cols | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"${DATA[0]}\" does not match"
+
+  # jeste kontrola pomoci date?
+
+
   if [[ $# -gt 1 ]]
   then
 
-    local words=$(head -1 ${DATA[0]} | wc -w)
-    local cols
     local ret
-
-    for((j = 1; j < "$words"; j++))
-    do
-      cols=$(echo "${cols}${j},")     # add column number
-    done
-
-    cols=$(echo "${cols%,}")          # cut off the first , from the left
 
     for i in "${DATA[@]}"
     do
@@ -430,26 +406,22 @@ function checkFiles()
       # na toto se jeste poptat, zda je implicitne timeformat a hodnota oddelena mezerou
       # dale, muze byt vice hodnot pro jeden casovy udaj v jednom souboru ?
       # pocitame, ze ano
+      # pripadne to jeste dodefinovat v zadani
       
       # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
 
-      #ret=$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}))
-      #[[ $(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null) -ne 0 ]] && { echo "diff"; MULTIPLOT="false"; return; }
+      #[[ "$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null)" != "0" ]] && { echo "diff"; MULTIPLOT="false"; return; }
+      # tohle pouze nefunguje, jen se zeptat jak
 
+      [[ "$(cat "$i" | cut -d " " -f$cols | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"$i\" does not match"
       
-      
-      
-      set -v
-      set -x
-      
-      [[ "$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null)" != "0" ]] && { echo "diff"; MULTIPLOT="false"; return; }
-      
-      [[ "$ret" != "" ]] && { MULTIPLOT="false"; return; }
-
+      ret=$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}))
+      [[ "$ret" != "" ]] && { MULTIPLOT="false"; return; }  # timestamps in data files does not match each other
     done
   
   else
     MULTIPLOT="false"
+    return
   fi
  
   
@@ -694,10 +666,18 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/[[:space:]]*#.*$//; $p')
 
-    echo "GNUPLOTPARAMS:: ret: $ret"
-    
     [[ "$ret" == "" ]] && error "value of the GnuplotParams directive was not provided in the configuration file \"$1\""
+    GNUPLOTPARAMS[$((${#GNUPLOTPARAMS[@]} + 1))]="$ret" # save the argument of the directive
 
+    if [[ "${CONFIG["g"]}" == "" ]]
+    then
+      CONFIG["g"]="${CONFIG["g"]}$ret"              # save the argument of the switch, this way it can be displayed by verbose
+    else
+      CONFIG["g"]="${CONFIG["g"]} $ret"              # save the argument of the switch, this way it can be displayed by verbose
+    fi
+
+    ((directives++))
+    verbose "value of the directive GnuplotParams: $ret"
   fi
 
   # ==================================
@@ -734,23 +714,7 @@ function readConfig()
     echo "ERRORS:: ret: $ret"
 
     [[ "$ret" == "" ]] && error "value of the IgnoreErrors directive was not provided in the configuration file \"$1\""
-
- # [ `cat $1 | grep ^[a-Z] | grep -i "IgnoreErrors" | wc -l` -gt 1 ] && 
- # { echo "direktiva IgnoreErrors je v zadanem konfiguracnim souboru $CONFIG uvedena vicekrat"; exit 1; }    # direktiva je v souboru uvedena vice nez jednou
- # [ `cat $1 | grep ^[a-Z] | sed 's/#.*//' | awk 'BEGIN{IGNORECASE=1} /IgnoreErrors/' | wc -w` -gt 2 ] && 
- #   { echo "direktiva IgnoreErrors v zadanem konfiguracnim souboru $CONFIG obsahuje vice hodnot"; exit 1; }    		# direktiva obsahuje vice hodnot
- # TMP=`cat $1 | grep ^[a-Z] | grep -i "IgnoreErrors" | awk '{print $2}'`
- # if ! [[ $TMP =~ ^$ ]]
- # then
- #   if ! [[ "$TMP" == "true" || "$TMP" == "false" ]]		# ma spatny format
- #   then
- #     echo "spatny format direktivy IgnoreErrors v zadanem konfiguracnim souboru"
- #     echo "direktiva pripousti pouze hodnoty true, false"
- #     exit 1;
- #   fi
- #   ERRORS=$TMP	# ok, direktiva je evedena a ma spravnou hodnotu
   fi
-
 
   if [[ $directives -eq 0 ]]
   then
@@ -760,17 +724,10 @@ function readConfig()
     verbose "number of processed directives: $directives"
   fi
 }
-
-
-
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # funkce pro kontrolu hodnot direktiv/prepinacu
 # X > x
 # Y > y 
-# a urcite jeste nejake dalsi .. ?
 #-------------------------------------------------------------------------------
 function checkValues()
 {
@@ -788,10 +745,6 @@ function checkValues()
   fi
 }
 #-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
   # main configuration variables, global for whole file
@@ -808,6 +761,7 @@ function checkValues()
   CONFIG["f"]=""                    # configuration file
   CONFIG["n"]=""                    # name of the output directory
   CONFIG["l"]=""                    # legend of the graph
+  CONFIG["g"]=""                    # parameters for gnuplot, just for verbose function
 
 
   # doplnit neimplementovane prepinace -c, -E
@@ -841,23 +795,12 @@ function checkValues()
   done
 
   readConfig "${CONFIG["f"]}"   # read the configuration file
-# debug
-  set +v
-  set +x
-  
   checkValues               # check provided values of the switches or directives from the configuration file
-
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
-
-# debug
-  set +v
-  set +x
 
   verbose "data files: ${DATA[@]}"   # report data files
 
-
   # pouze debug
   echo "MULTIPLOT: $MULTIPLOT"
-
 
 
