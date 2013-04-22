@@ -119,13 +119,6 @@ function error()
 
   exit 2;
 }
-
-
-# dodelat prepinac -c !!!!!! -E take
-#=====================
-#=====================
-#=====================
-#=====================
 #-------------------------------------------------------------------------------
 # function for reading and evaluation of parameters
 # parameters:
@@ -465,18 +458,11 @@ function sortFiles()
 #	1) the configuration file
 # the result of the processing is saved in the global variables
 # when an error occurs it is sent to the error function
-# jeste doplnit ((directives++)) k nedopsanym direktivam
 #-------------------------------------------------------------------------------
 function readConfig()
 {
   [[ "${CONFIG["f"]}" != "" ]] || return;        # configuration file was not provided
   [[ $(wc -l < "${CONFIG["f"]}") -eq 0 ]] && { warning "provided configuration file \"${CONFIG["f"]}\" is empty"; return; } # empty configuration file
-
-#
-#
-#
-#       JESTE KONTROLA, ZDA CTEME VSECHNY V ZADANI DEFINOVANE DIREKTIVY - PREPINACE
-#
 
   local ret             # for checking values of the directives
   local directives=0    # number of processed directives
@@ -734,16 +720,16 @@ function readConfig()
   fi
   
   # ==================================
-  # ERRORS
+  # IGNOREERRORS
   if ! [[ "${SWITCHES[@]}" =~ E || "$(grep -i "^[^#]*IgnoreErrors .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
-    warning "tady"
     ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/[[:space:]]*#.*$//; $p')
-
-    echo "ERRORS:: ret: $ret"
 
     [[ "$ret" == "" ]] && error "value of the IgnoreErrors directive was not provided in the configuration file \"$1\""
     ! [[ "$ret" == "true" || "$ret" == "false" ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
+    CONFIG["E"]="$ret"
+    ((directives++))
+    verbose "value of the directive Name: $ret"
   fi
 
   if [[ $directives -eq 0 ]]
@@ -755,9 +741,10 @@ function readConfig()
   fi
 }
 #-------------------------------------------------------------------------------
-# funkce pro kontrolu hodnot direktiv/prepinacu
-# X > x
-# Y > y 
+# function for checking values of the directives/switches
+# parameters:
+#   function takes no parameters, it works with global variables
+# function checks value of Xmax, Xmin, Ymax adn Ymin
 #-------------------------------------------------------------------------------
 function checkValues()
 {
@@ -773,6 +760,17 @@ function checkValues()
     # convert to unix timestamp, then compare
     [[ $(echo "$(date "+%s" -d "$(echo "${CONFIG["X"]}" | sed 's/[^0-9[:space:]\:]//g')") <= $(date "+%s" -d "$(echo "${CONFIG["x"]}" | sed 's/[^0-9[:space:]\:]//g')")" | bc) -eq 1 ]] && error "Value of Xmin is greater or equal than value of Xmax"
   fi
+}
+#-------------------------------------------------------------------------------
+# function for creating animation
+# parameters: 
+#   function takes no parameters, it works with global variables
+#-------------------------------------------------------------------------------
+function createAnim()
+{
+
+
+  
 }
 #-------------------------------------------------------------------------------
 # main
@@ -792,25 +790,22 @@ function checkValues()
   CONFIG["n"]=""                    # name of the output directory
   CONFIG["l"]=""                    # legend of the graph
   CONFIG["g"]=""                    # parameters for gnuplot, just for verbose function
-  CONFIG["E"]="true"                # IgnoreErrors
-
+  CONFIG["E"]="true"                # IgnoreErrors, do not ignore errors
   
-  typeset -a SWITCHES       # field for all processed switches
-  typeset -a DATA			# filed containing data files
-  typeset -a TEMPFILES		# temporary files
-  typeset -a GNUPLOTPARAMS  # field for gnuplot parameters
-  typeset -a EFFECTPARAMS   # field for effect parameters
-  typeset -a CRITICALVALUES # field for critical values
+  typeset -a SWITCHES               # field for all processed switches
+  typeset -a DATA			        # filed containing data files
+  typeset -a TEMPFILES		        # temporary files
+  typeset -a GNUPLOTPARAMS          # field for gnuplot parameters
+  typeset -a EFFECTPARAMS           # field for effect parameters
+  typeset -a CRITICALVALUES         # field for critical values
 
-
-
-  GNUPLOTDEF=0
-  FRAMES=0					# celkovy pocet generovanych snimku
-  RECORDS=0					# pocet zaznamu v souboru
-  TIMEREGEX=0
+  FRAMES=0					        # total number of generated frames
+  RECORDS=0					        # number of records in the file .... ?
+  
   MULTIPLOT="false"
-  CHANGESPEED=1				# rychlost zmeny barvy pozadi
-  DIRECTION=0				# "smer", kterym menime barvu pozadi
+  
+  #CHANGESPEED=1				# rychlost zmeny barvy pozadi
+  #DIRECTION=0				# "smer", kterym menime barvu pozadi
   VERBOSE=0
 
 
