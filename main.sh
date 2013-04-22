@@ -142,7 +142,7 @@ function readParams()
 
   [[ $# -lt 1 ]] && usage     # print how to use
 
-  while getopts ":t:X:x:Y:y:S:T:F:c:l:g:e:f:n:v" opt  	# cycle for processing the switches
+  while getopts ":t:X:x:Y:y:S:T:F:c:l:g:e:f:n:Ev" opt  	# cycle for processing the switches
   do
    case "$opt" in
       t) # TIMEFORM
@@ -327,6 +327,10 @@ function readParams()
          CONFIG["v"]="1"
          VERBOSE=1;;                        # set the value of global variable
 
+      E) # IGNOREERRORS
+         SWITCHES[$((switches_idx++))]="E"	# save the processed switch
+         CONFIG["E"]="false";;
+
      \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
 		 exit 2;;
    esac
@@ -378,21 +382,12 @@ function checkFiles()
   # jeste je nutne zkontrolovat, ze se shoduje zadany format timestampu s tim, co je v datovem souboru
 
   local words=$(head -1 ${DATA[0]} | wc -w)
-  local cols
-
-  for((j = 1; j < "$words"; j++))
-  do
-    cols=$(echo "${cols}${j},")     # add column number
-  done
-
-  # cut off only the fimestamp
-  cols=$(echo "${cols%,}")          # cut off the first , from the left
 
   # check if the provided TimeFormat is equal with the timestamp in the data file
-  [[ "$(cat "${DATA[0]}" | cut -d " " -f$cols | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"${DATA[0]}\" does not match"
+  [[ "$(cat "${DATA[0]}" | cut -d " " -f1-$((words -1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"${DATA[0]}\" does not match"
 
   # jeste kontrola pomoci date?
-
+  # pokud to ma smysl tak dodelat nekdy pozdeji
 
   if [[ $# -gt 1 ]]
   then
@@ -413,9 +408,9 @@ function checkFiles()
       #[[ "$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null)" != "0" ]] && { echo "diff"; MULTIPLOT="false"; return; }
       # tohle pouze nefunguje, jen se zeptat jak
 
-      [[ "$(cat "$i" | cut -d " " -f$cols | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"$i\" does not match"
+      [[ "$(cat "$i" | cut -d " " -f1-$((words - 1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"$i\" does not match"
       
-      ret=$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}))
+      ret=$(diff <(cat ${DATA[0]} | cut -d" " -f1-$((words - 1))) <(cat $i | cut -d" " -f1-$((words - 1))))
       [[ "$ret" != "" ]] && { MULTIPLOT="false"; return; }  # timestamps in data files does not match each other
     done
   
@@ -423,14 +418,47 @@ function checkFiles()
     MULTIPLOT="false"
     return
   fi
- 
   
   MULTIPLOT="true"
+}
+#-------------------------------------------------------------------------------
+# function for sorting multiple files
+# parameters:
+#   function takes no parameters, it works with global variables
+# function sorts the data files depending on timestamp in data files
+#-------------------------------------------------------------------------------
+function sortFiles()
+{
+  [[ "${#DATA[@]}" -eq 1 ]] && return   # just one file
 
   # tady jeste ty soubory seradit ve spravnem poradi dle casu, pokud na sebe nenavazuji ?
-}
+  local words=$(head -1 ${DATA[0]} | wc -w)
+  for ((i = 1; i < ${#DATA[@]}; i++))
+  do
+
+    #warning "kontroluji ${DATA[$((i - 1))]} a ${DATA[$i]}"
+    #echo "neco"
+    #echo "${DATA[$i]}"
+    #echo "${DATA[i]}"
+    echo "kontroluji ${DATA[$((i - 1))]} a ${DATA[$i]}"
+    #warning "${DATA[i]}"
+    #warning "${DATA[$i]}"
+
+    #set -v
+    #set -x
 
 
+
+    #date "+%s" -d "$(tail -1 "${DATA[$((i - 1))]}" | cut -d " " -f1-$((words - 1)))
+
+
+    #[[ $(echo "$(date "+%s" -d "$(tail -1 "${DATA[$((i - 1))]}" | cut -d " " -f1-$((words - 1)))")" >= "$(date "+%s" -d "$(head -1 "${DATA[$i]}" | cut -d " " -f1-$((words - 1)))")" | bc) -eq 1 ]] && error "chyba"
+    
+    [[ $(echo "$(date "+%s" -d "$(tail -1 "${DATA[$((i - 1))]}" | cut -d " " -f1-$((words - 1)))")" >= "$(date "+%s" -d "$(head -1 "${DATA[$i]}" | cut -d " " -f1-$((words - 1)))")" | bc) -eq 1 ]] && error "chyba"
+
+
+  done
+} 
 #-------------------------------------------------------------------------------
 # fucntion for reading the configuration file
 # parameters:
@@ -707,13 +735,15 @@ function readConfig()
   
   # ==================================
   # ERRORS
-  if ! [[ "${SWITCHES[@]}" =~ E || "$(grep -i "^[^#]*IgnoreErros .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "${SWITCHES[@]}" =~ E || "$(grep -i "^[^#]*IgnoreErrors .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
   then
+    warning "tady"
     ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/[[:space:]]*#.*$//; $p')
 
     echo "ERRORS:: ret: $ret"
 
     [[ "$ret" == "" ]] && error "value of the IgnoreErrors directive was not provided in the configuration file \"$1\""
+    ! [[ "$ret" == "true" || "$ret" == "false" ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
   fi
 
   if [[ $directives -eq 0 ]]
@@ -762,9 +792,8 @@ function checkValues()
   CONFIG["n"]=""                    # name of the output directory
   CONFIG["l"]=""                    # legend of the graph
   CONFIG["g"]=""                    # parameters for gnuplot, just for verbose function
+  CONFIG["E"]="true"                # IgnoreErrors
 
-
-  # doplnit neimplementovane prepinace -c, -E
   
   typeset -a SWITCHES       # field for all processed switches
   typeset -a DATA			# filed containing data files
@@ -772,6 +801,8 @@ function checkValues()
   typeset -a GNUPLOTPARAMS  # field for gnuplot parameters
   typeset -a EFFECTPARAMS   # field for effect parameters
   typeset -a CRITICALVALUES # field for critical values
+
+
 
   GNUPLOTDEF=0
   FRAMES=0					# celkovy pocet generovanych snimku
@@ -797,6 +828,9 @@ function checkValues()
   readConfig "${CONFIG["f"]}"   # read the configuration file
   checkValues               # check provided values of the switches or directives from the configuration file
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
+  #sortFiles
+  # prozatim asi neni nutne, mozna to gnuplot umi primo v zavislosti na datu?
+  # pokud by to bylo nutne, tak jeste pridat serazeni zaznamu v samotnem souboru ?
 
   verbose "data files: ${DATA[@]}"   # report data files
 
