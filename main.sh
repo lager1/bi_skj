@@ -19,6 +19,7 @@
 
 # prozatim implementovane vsechny povinne prepinace
 # navic definovan prepinac -v ==> verbose
+# navic definovan prepinac -p ==> play
 #
 #
 # TODO: 
@@ -135,7 +136,7 @@ function readParams()
 
   [[ $# -lt 1 ]] && usage     # print how to use
 
-  while getopts ":t:X:x:Y:y:S:T:F:c:l:g:e:f:n:Ev" opt  	# cycle for processing the switches
+  while getopts ":t:X:x:Y:y:S:T:F:c:l:g:e:f:n:Evp" opt  	# cycle for processing the switches
   do
    case "$opt" in
       t) # TIMEFORM
@@ -315,14 +316,19 @@ function readParams()
          SWITCHES[$((switches_idx++))]="n"	# save the processed switch
          CONFIG["n"]="$OPTARG";;            # save the argument of the switch
 
+      E) # IGNOREERRORS
+         SWITCHES[$((switches_idx++))]="E"	# save the processed switch
+         CONFIG["E"]="false";;
+
       v) # VERBOSE
          SWITCHES[$((switches_idx++))]="v"	# save the processed switch
          CONFIG["v"]="1"
          VERBOSE=1;;                        # set the value of global variable
 
-      E) # IGNOREERRORS
-         SWITCHES[$((switches_idx++))]="E"	# save the processed switch
-         CONFIG["E"]="false";;
+      v) # PLAY
+         SWITCHES[$((switches_idx++))]="p"	# save the processed switch
+         CONFIG["p"]="1"
+         PLAY=1;;                        # set the value of global variable
 
      \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
 		 exit 2;;
@@ -744,11 +750,10 @@ function readConfig()
 # function for checking values of the directives/switches
 # parameters:
 #   function takes no parameters, it works with global variables
-# function checks value of Xmax, Xmin, Ymax adn Ymin
+# function checks value of Xmax, Xmin, Ymax, Ymin and name of the output directory
 #-------------------------------------------------------------------------------
 function checkValues()
 {
-
   if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" && "${CONFIG["y"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]
   then
     [[ $(echo "${CONFIG["Y"]} <= ${CONFIG["y"]}" | bc) -eq 1 ]] && error "Value of Ymin is greater or equal than value of Ymax"
@@ -760,6 +765,8 @@ function checkValues()
     # convert to unix timestamp, then compare
     [[ $(echo "$(date "+%s" -d "$(echo "${CONFIG["X"]}" | sed 's/[^0-9[:space:]\:]//g')") <= $(date "+%s" -d "$(echo "${CONFIG["x"]}" | sed 's/[^0-9[:space:]\:]//g')")" | bc) -eq 1 ]] && error "Value of Xmin is greater or equal than value of Xmax"
   fi
+  
+  [[ "${CONFIG["n"]}" == "" ]] && CONFIG["n"]="main"      # default name
 }
 #-------------------------------------------------------------------------------
 # function for creating animation
@@ -768,9 +775,24 @@ function checkValues()
 #-------------------------------------------------------------------------------
 function createAnim()
 {
+  tmp="$(mktemp)"
+  dir="$(mktemp -d)"
+  TEMPFILES[${#TEMPFILES}]="$tmp"
+  TEMPFILES[${#TEMPFILES}]="$dir"
+ 
+  echo "set terminal png xffffff x000000 font verdana 8 size 1024,768
+set output \"${CONFIG["n"]}/1.png\"
+set timefmt \""${CONFIG["t"]}"\"
+set xdata time
+set format x\"${CONFIG["t"]}\"
+set xlabel \"Time\"
+set ylabel \"Value\"
+set y2label \"Value\"
+set title \"${CONFIG["l"]}\"
+set nokey" > "$tmp"
 
 
-  
+  echo "vse uvedeno v souboru $tmp"
 }
 #-------------------------------------------------------------------------------
 # main
@@ -806,7 +828,8 @@ function createAnim()
   
   #CHANGESPEED=1				# rychlost zmeny barvy pozadi
   #DIRECTION=0				# "smer", kterym menime barvu pozadi
-  VERBOSE=0
+  VERBOSE=0                         # debug information
+  PLAY=0                            # play after script has finished
 
 
 #-------------------------------------------------------------------------------
@@ -826,6 +849,10 @@ function createAnim()
   #sortFiles
   # prozatim asi neni nutne, mozna to gnuplot umi primo v zavislosti na datu?
   # pokud by to bylo nutne, tak jeste pridat serazeni zaznamu v samotnem souboru ?
+  # samotna data v datovych souborech by mela byt setridena podle casovych udaju, gnuplot si s tim sice poradi, ale vypada to zvlastne
+  # pokud pridame smooth unique, tak neni treba data sortovat, gnuplot to udela za nas
+
+  createAnim
 
   verbose "data files: ${DATA[@]}"   # report data files
 
