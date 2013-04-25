@@ -3,7 +3,7 @@
 
 #
 #
-# semester work from subject BI-SKswitches_idx, FIT CVUT, 2013, summer semester
+# semester work from subject BI-SKJ, FIT CVUT, 2013, summer semester
 #
 # This script generates animation based on provided data files,
 # additionaly its behavior can be affected by switches or by configuration file.
@@ -152,7 +152,8 @@ function readParams()
          then
            # there may be specific value, needs to be checked
            # first check if the format of the argument is correct, then check by date
-           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
+
 
            local ret=""
 
@@ -190,7 +191,7 @@ function readParams()
          then
            # there may be specific value, needs to be checked
            # first check if the format of the argument is correct, then check by date
-           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the switch -x does not match"
+           [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the switch -x does not match"
 
            local ret=""
 
@@ -383,7 +384,7 @@ function checkFiles()
   local words=$(head -1 ${DATA[0]} | wc -w)
 
   # check if the provided TimeFormat is equal with the timestamp in the data file
-  [[ "$(cat "${DATA[0]}" | cut -d " " -f1-$((words -1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"${DATA[0]}\" does not match"
+  [[ "$(cat "${DATA[0]}" | cut -d " " -f1-$((words -1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"${DATA[0]}\" does not match"
 
   # jeste kontrola pomoci date?
   # pokud to ma smysl tak dodelat nekdy pozdeji
@@ -407,7 +408,7 @@ function checkFiles()
       #[[ "$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null)" != "0" ]] && { echo "diff"; MULTIPLOT="false"; return; }
       # tohle pouze nefunguje, jen se zeptat jak
 
-      [[ "$(cat "$i" | cut -d " " -f1-$((words - 1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"$i\" does not match"
+      [[ "$(cat "$i" | cut -d " " -f1-$((words -1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"$i\" does not match"  
       
       ret=$(diff <(cat ${DATA[0]} | cut -d" " -f1-$((words - 1))) <(cat $i | cut -d" " -f1-$((words - 1))))
       [[ "$ret" != "" ]] && { MULTIPLOT="false"; return; }  # timestamps in data files does not match each other
@@ -500,8 +501,9 @@ function readConfig()
     then
       # there may be specific value, needs to be checked
       # first check if the format of the argument is correct, then check by date
-      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
 
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
+      
       local return=""
 
       for((i = 0; i < ${#CONFIG["t"]}; i++))   # seperate control sequences, that are just after each other, by space
@@ -537,7 +539,7 @@ function readConfig()
     then
       # there may be specific value, needs to be checked
       # first check if the format of the argument is correct, then check by date
-      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%H/\[0-9\]\{2\}/g; s/%M/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%S/\[0-9\]\{2\}/g; s/%d/\[0-9\]\{2\}/g; s/%j/\[0-9\]\{3\}/g; s/%k/\[0-9\]\{2\}/g; s/%m/\[0-9\]\{2\}/g; s/%u/\[0-9\]\{1\}/g; s/%w/\[0-9\]\{1\}/g; s/%W/\[0-9\]\{2\}/g; s/%y/\[0-9\]\{2\}/g; s/%Y/\[0-9\]\{4\}/g; s/%l/\[0-9\]\{2\}/g; s/%U/\[0-9\]\{2\}/g; s/%V/\[0-9\]\{2\}/g;')$ ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
 
       local return=""
 
@@ -775,13 +777,72 @@ function checkValues()
 #-------------------------------------------------------------------------------
 function createAnim()
 {
-  tmp="$(mktemp)"
-  dir="$(mktemp -d)"
-  TEMPFILES[${#TEMPFILES}]="$tmp"
-  TEMPFILES[${#TEMPFILES}]="$dir"
- 
+  local directory="${CONFIG["n"]}"
+  local i=1
+  local records=0       # total number of records
+
+  while [[ -d "$directory" ]]
+  do
+    directory="${CONFIG["n"]}_$((i++))"
+  done
+  
+  mkdir "$directory"
+  
+  if [[ "$?" != "0" ]]
+  then
+    local st=$(mkdir "$directory" 2>&1)
+    error "error creating directory $directory, details:\n$st"
+
+  fi
+
+
+  for i in ${DATA[@]}
+  do
+    records=$(echo "$records +$(wc -l < "$i")" | bc)
+  done
+
+# speed -> pocet zaznamu pro ktere uz se ma generovat dalsi snimek
+# time -> celkova doba animace
+
+  if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ T ]] # Speed and Time
+  then
+    # musime dopocitat fps
+    # -> musime vedet, kolik mame framu
+    local frames=$((records / ${CONFIG["S"]}))
+    echo "pocet snimku je $frames"
+
+    # fps = pocet_snimku / cas
+
+  fi
+
+  local fps=$(($frames / ${CONFIG["T"]}))
+  echo "fps je: $fps"
+
+  
+  # zacneme hned na prvnim nasobku ne na 0
+  for((i = $frames; i < $records; i += $frames))
+  do
+    echo "set terminal png xffffff x000000 font verdana 8 size 1024,768
+  set output \"$directory/$(printf %0${#i}d $i).png\"
+  set timefmt \""${CONFIG["t"]}"\"
+  set xdata time
+  set format x\"${CONFIG["t"]}\"
+  set xlabel \"Time\"
+  set ylabel \"Value\"
+  set y2label \"Value\"
+  set title \"${CONFIG["l"]}\"
+  set nokey\
+  plot $(head -$i data4)" | gnuplot
+
+  done
+
+
+# frame rate ffmpegu pomoci -r
+
+
+
   echo "set terminal png xffffff x000000 font verdana 8 size 1024,768
-set output \"${CONFIG["n"]}/1.png\"
+set output \"$directory/1.png\"
 set timefmt \""${CONFIG["t"]}"\"
 set xdata time
 set format x\"${CONFIG["t"]}\"
@@ -789,10 +850,15 @@ set xlabel \"Time\"
 set ylabel \"Value\"
 set y2label \"Value\"
 set title \"${CONFIG["l"]}\"
-set nokey" > "$tmp"
+set nokey" > "$directory/gnuplot.gp"
 
-
-  echo "vse uvedeno v souboru $tmp"
+  #echo "set terminal png;
+  #set output '`printf %0${NUM}d $i`.png';
+  #set format x '';
+  #plot [0:100][$MINMAX] \
+  #'<sed -n $i,$((100+i))p $input' \
+  #with boxes t'$i-$((100+i))';
+  #" | gnuplot
 }
 #-------------------------------------------------------------------------------
 # main
