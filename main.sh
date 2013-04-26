@@ -795,11 +795,14 @@ function createAnim()
 
   fi
 
-
+  # asi nezalezi zda je multiplot true nebo false, vse hodime do jednoho
   for i in ${DATA[@]}
   do
     records=$(echo "$records +$(wc -l < "$i")" | bc)
+    cat "$i" >> "$directory/data"
   done
+
+# pripadne tady jeste pridat /data do datovych souboru
 
 # speed -> pocet zaznamu pro ktere uz se ma generovat dalsi snimek
 # time -> celkova doba animace
@@ -818,39 +821,38 @@ function createAnim()
   local fps=$(($frames / ${CONFIG["T"]}))
   echo "fps je: $fps"
 
+  # toto +- funguje
+
+  #echo "set terminal png size 1024,768; set font 'verdana'; set output '1.png'; set timefmt '%H:%M:%S'; set xdata time; set format x '%H:%M:%S'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot 'data4' using 1:2 with boxes smooth unique;" | gnuplot
+
+
+  #echo "set terminal png size 1024,768; set font 'verdana'; set output '1.png'; set timefmt '%H:%M:%S'; set xdata time; set format x '%H:%M:%S'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot 'data4' using 1:2 with boxes smooth unique;" | gnuplot
+
+
   
   # zacneme hned na prvnim nasobku ne na 0
-  for((i = $frames; i < $records; i += $frames))
+  for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
-    echo "set terminal png xffffff x000000 font verdana 8 size 1024,768
-  set output \"$directory/$(printf %0${#i}d $i).png\"
-  set timefmt \""${CONFIG["t"]}"\"
-  set xdata time
-  set format x\"${CONFIG["t"]}\"
-  set xlabel \"Time\"
-  set ylabel \"Value\"
-  set y2label \"Value\"
-  set title \"${CONFIG["l"]}\"
-  set nokey\
-  plot $(head -$i data4)" | gnuplot
+    echo "set terminal png size 1024,768; set font 'verdana'; set output '$directory/$(printf %0${#records}d $i).png'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
 
   done
 
 
 # frame rate ffmpegu pomoci -r
 
+ ffmpeg -i %0${#records}d.png -r $fps "$directory/anim.mp4" 
 
 
-  echo "set terminal png xffffff x000000 font verdana 8 size 1024,768
-set output \"$directory/1.png\"
-set timefmt \""${CONFIG["t"]}"\"
-set xdata time
-set format x\"${CONFIG["t"]}\"
-set xlabel \"Time\"
-set ylabel \"Value\"
-set y2label \"Value\"
-set title \"${CONFIG["l"]}\"
-set nokey" > "$directory/gnuplot.gp"
+#  echo "set terminal png xffffff x000000 font verdana 8 size 1024,768
+#set output \"$directory/1.png\"
+#set timefmt \""${CONFIG["t"]}"\"
+#set xdata time
+#set format x\"${CONFIG["t"]}\"
+#set xlabel \"Time\"
+#set ylabel \"Value\"
+#set y2label \"Value\"
+#set title \"${CONFIG["l"]}\"
+#set nokey" > "$directory/gnuplot.gp"
 
   #echo "set terminal png;
   #set output '`printf %0${NUM}d $i`.png';
@@ -911,6 +913,9 @@ set nokey" > "$directory/gnuplot.gp"
 
   readConfig "${CONFIG["f"]}"   # read the configuration file
   checkValues               # check provided values of the switches or directives from the configuration file
+  
+  verbose "data files: ${DATA[@]}"   # report data files
+ 
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
   #sortFiles
   # prozatim asi neni nutne, mozna to gnuplot umi primo v zavislosti na datu?
@@ -919,10 +924,5 @@ set nokey" > "$directory/gnuplot.gp"
   # pokud pridame smooth unique, tak neni treba data sortovat, gnuplot to udela za nas
 
   createAnim
-
-  verbose "data files: ${DATA[@]}"   # report data files
-
-  # pouze debug
-  echo "MULTIPLOT: $MULTIPLOT"
 
 
