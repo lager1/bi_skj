@@ -326,7 +326,7 @@ function readParams()
          CONFIG["v"]="1"
          VERBOSE=1;;                        # set the value of global variable
 
-      v) # PLAY
+      p) # PLAY
          SWITCHES[$((switches_idx++))]="p"	# save the processed switch
          CONFIG["p"]="1"
          PLAY=1;;                        # set the value of global variable
@@ -780,6 +780,8 @@ function createAnim()
   local directory="${CONFIG["n"]}"
   local i=1
   local records=0       # total number of records
+  local fps             # frames per second
+  local frames          # number of frames
 
   while [[ -d "$directory" ]]
   do
@@ -795,7 +797,9 @@ function createAnim()
 
   fi
 
-  # asi nezalezi zda je multiplot true nebo false, vse hodime do jednoho
+
+  # jak odlisime ruzne krivky?
+
   for i in ${DATA[@]}
   do
     records=$(echo "$records +$(wc -l < "$i")" | bc)
@@ -807,62 +811,77 @@ function createAnim()
 # speed -> pocet zaznamu pro ktere uz se ma generovat dalsi snimek
 # time -> celkova doba animace
 
+# jeste nastavit meze
+
+
+  if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ T && "${SWITCHES[@]}" =~ F ]] # Speed, Time and FPS
+  then
+    warning "Speed, Time and FPS were provided, using Speed and Time"
+  fi
+
+
   if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ T ]] # Speed and Time
   then
     # musime dopocitat fps
     # -> musime vedet, kolik mame framu
-    local frames=$((records / ${CONFIG["S"]}))
-    echo "pocet snimku je $frames"
-
     # fps = pocet_snimku / cas
+    frames=$((records / ${CONFIG["S"]}))
+    fps=$(($frames / ${CONFIG["T"]}))
+  fi
+
+
+  if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ F ]] # Speed and FPS
+  then
+   echo "neco" 
 
   fi
 
-  local fps=$(($frames / ${CONFIG["T"]}))
+
+  if [[ "${SWITCHES[@]}" =~ T && "${SWITCHES[@]}" =~ F ]] # Time and FPS
+  then
+   echo "neco2" 
+
+  fi
+
+  echo "pocet snimku je $frames"
   echo "fps je: $fps"
-
-  # toto +- funguje
-
-  #echo "set terminal png size 1024,768; set font 'verdana'; set output '1.png'; set timefmt '%H:%M:%S'; set xdata time; set format x '%H:%M:%S'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot 'data4' using 1:2 with boxes smooth unique;" | gnuplot
-
-
-  #echo "set terminal png size 1024,768; set font 'verdana'; set output '1.png'; set timefmt '%H:%M:%S'; set xdata time; set format x '%H:%M:%S'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot 'data4' using 1:2 with boxes smooth unique;" | gnuplot
-
-
   
-  # zacneme hned na prvnim nasobku ne na 0
+  # zacneme hned na prvnim nasobku ne na 0, koncime nasobkem records
+  # start at the first multiple, end at the records
+  local j=0
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
-    echo "set terminal png size 1024,768; set font 'verdana'; set output '$directory/$(printf %0${#records}d $i).png'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
+    echo "set terminal png size 1024,768; set font 'verdana'; set output '$directory/$(printf %0${#records}d $j).png'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
+    
+    ((j++))
 
   done
 
 
 # frame rate ffmpegu pomoci -r
 
- ffmpeg -i %0${#records}d.png -r $fps "$directory/anim.mp4" 
+  ffmpeg -r "$fps" -i "$directory/%0${#records}d.png" -vcodec libx264 "$directory/anim.mp4" 
 
-
-#  echo "set terminal png xffffff x000000 font verdana 8 size 1024,768
-#set output \"$directory/1.png\"
-#set timefmt \""${CONFIG["t"]}"\"
-#set xdata time
-#set format x\"${CONFIG["t"]}\"
-#set xlabel \"Time\"
-#set ylabel \"Value\"
-#set y2label \"Value\"
-#set title \"${CONFIG["l"]}\"
-#set nokey" > "$directory/gnuplot.gp"
-
-  #echo "set terminal png;
-  #set output '`printf %0${NUM}d $i`.png';
-  #set format x '';
-  #plot [0:100][$MINMAX] \
-  #'<sed -n $i,$((100+i))p $input' \
-  #with boxes t'$i-$((100+i))';
-  #" | gnuplot
+  play "$directory/anim.mp4"
 }
 #-------------------------------------------------------------------------------
+# 
+# arguments:
+#   1) file to play
+#-------------------------------------------------------------------------------
+function play()
+{
+  (($PLAY)) || return;
+  mplayer "$1"
+}
+#-------------------------------------------------------------------------------
+# 
+#-------------------------------------------------------------------------------
+function cleanup()
+{
+  echo "uklid"
+  
+}
 # main
 #-------------------------------------------------------------------------------
   # main configuration variables, global for whole file
@@ -894,8 +913,6 @@ function createAnim()
   
   MULTIPLOT="false"
   
-  #CHANGESPEED=1				# rychlost zmeny barvy pozadi
-  #DIRECTION=0				# "smer", kterym menime barvu pozadi
   VERBOSE=0                         # debug information
   PLAY=0                            # play after script has finished
 
@@ -917,6 +934,11 @@ function createAnim()
   verbose "data files: ${DATA[@]}"   # report data files
  
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
+  echo "play: $PLAY"
+
+  exit 0
+  # debug
+
   #sortFiles
   # prozatim asi neni nutne, mozna to gnuplot umi primo v zavislosti na datu?
   # pokud by to bylo nutne, tak jeste pridat serazeni zaznamu v samotnem souboru ?
