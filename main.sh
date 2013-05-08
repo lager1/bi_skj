@@ -204,22 +204,22 @@ function readParams()
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -S"; }
          SWITCHES[$((switches_idx++))]="S"	# save the processed switch
          CONFIG["S"]="$OPTARG";;            # save the argument of the switch
 
       T) # TIME
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -T"; }
          SWITCHES[$((switches_idx++))]="T"	# save the processed switch
          CONFIG["T"]="$OPTARG";;            # save the argument of the switch
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {	# non-numeric value, should be int/float
-           error "wrong argument of the switch -F"; }
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ ]] && {	# non-numeric value, should be int/float, must not be zero
+		   error "wrong argument of the switch -F"; }
          SWITCHES[$((switches_idx++))]="F"	# save the processed switch
          CONFIG["F"]="$OPTARG";;            # save the argument of the switch
 
@@ -744,7 +744,7 @@ function createAnim()
   fi
 
 
-  CONFIG["n"]="$directory"
+  CONFIG["n"]="$directory"  # for cleanup
 
 
   # jak odlisime ruzne krivky?
@@ -833,8 +833,8 @@ function cleanup()
 #-------------------------------------------------------------------------------
 # signal reactions
 #-------------------------------------------------------------------------------
-trap cleanup EXIT
-trap 'trap - EXIT; cleanup' INT TERM
+#trap cleanup EXIT
+#trap 'trap - EXIT; cleanup' INT TERM
 #-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
