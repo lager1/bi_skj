@@ -15,7 +15,9 @@
 
 
 
+# jeste pridat nejakou funkcionalitu prepinaci -E -> asi neco s vypisovanim chyb nebo tak
 
+# dodefinovat v zadani, ze timestamp a hodnota jsou navzajem oddeleny pomoci mezery v datovem souboru
 
 # prozatim implementovane vsechny povinne prepinace
 # navic definovan prepinac -v ==> verbose
@@ -351,15 +353,14 @@ function checkFiles()
 
   done
 
-  # jeste je nutne zkontrolovat, ze se shoduje zadany format timestampu s tim, co je v datovem souboru
+  # need to check, that the provided timestamp matches the data file
 
   local words=$(head -1 ${DATA[0]} | wc -w)
 
   # check if the provided TimeFormat is equal with the timestamp in the data file
   [[ "$(cat "${DATA[0]}" | cut -d " " -f1-$((words -1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"${DATA[0]}\" does not match"
 
-  # jeste kontrola pomoci date?
-  # pokud to ma smysl tak dodelat nekdy pozdeji
+  # cant check specific dates with only regex, but shoudl be enough
 
   if [[ $# -gt 1 ]]
   then
@@ -369,16 +370,6 @@ function checkFiles()
     for i in "${DATA[@]}"
     do
       [[ $(wc -l < "${DATA[0]}") -ne $(wc -l < "$i") ]] && { MULTIPLOT="false"; return; }
-      
-      # na toto se jeste poptat, zda je implicitne timeformat a hodnota oddelena mezerou
-      # dale, muze byt vice hodnot pro jeden casovy udaj v jednom souboru ?
-      # pocitame, ze ano
-      # pripadne to jeste dodefinovat v zadani
-      
-      # neco takoveho pouzit v pripade, ze je v jednom souboru povoleno vice hodnot pro jeden casovy udaj
-
-      #[[ "$(diff <(cat ${DATA[0]} | cut -d" " -f${cols}) <(cat $i | cut -d" " -f${cols}) &>/dev/null)" != "0" ]] && { echo "diff"; MULTIPLOT="false"; return; }
-      # tohle pouze nefunguje, jen se zeptat jak
 
       [[ "$(cat "$i" | cut -d " " -f1-$((words -1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"$i\" does not match"  
       
@@ -393,44 +384,6 @@ function checkFiles()
   
   MULTIPLOT="true"
 }
-#-------------------------------------------------------------------------------
-# function for sorting multiple files
-# parameters:
-#   function takes no parameters, it works with global variables
-# function sorts the data files depending on timestamp in data files
-#-------------------------------------------------------------------------------
-function sortFiles()
-{
-  [[ "${#DATA[@]}" -eq 1 ]] && return   # just one file
-
-  # tady jeste ty soubory seradit ve spravnem poradi dle casu, pokud na sebe nenavazuji ?
-  local words=$(head -1 ${DATA[0]} | wc -w)
-  for ((i = 1; i < ${#DATA[@]}; i++))
-  do
-
-    #warning "kontroluji ${DATA[$((i - 1))]} a ${DATA[$i]}"
-    #echo "neco"
-    #echo "${DATA[$i]}"
-    #echo "${DATA[i]}"
-    echo "kontroluji ${DATA[$((i - 1))]} a ${DATA[$i]}"
-    #warning "${DATA[i]}"
-    #warning "${DATA[$i]}"
-
-    #set -v
-    #set -x
-
-
-
-    #date "+%s" -d "$(tail -1 "${DATA[$((i - 1))]}" | cut -d " " -f1-$((words - 1)))
-
-
-    #[[ $(echo "$(date "+%s" -d "$(tail -1 "${DATA[$((i - 1))]}" | cut -d " " -f1-$((words - 1)))")" >= "$(date "+%s" -d "$(head -1 "${DATA[$i]}" | cut -d " " -f1-$((words - 1)))")" | bc) -eq 1 ]] && error "chyba"
-    
-    [[ $(echo "$(date "+%s" -d "$(tail -1 "${DATA[$((i - 1))]}" | cut -d " " -f1-$((words - 1)))")" >= "$(date "+%s" -d "$(head -1 "${DATA[$i]}" | cut -d " " -f1-$((words - 1)))")" | bc) -eq 1 ]] && error "chyba"
-
-
-  done
-} 
 #-------------------------------------------------------------------------------
 # fucntion for reading the configuration file
 # parameters:
@@ -731,20 +684,7 @@ function checkValues()
 {
   if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" && "${CONFIG["y"]}" != "auto" && "${CONFIG["y"]}" != "min" ]]
   then
-    echo "podminka"
     [[ $(echo "${CONFIG["Y"]} <= ${CONFIG["y"]}" | bc) -eq 1 ]] && error "Value of Ymin is greater or equal than value of Ymax"
-
-    set -v
-    set -x
-
-    [[ "$(grep "${CONFIG["Y"]}" "${DATA[@]}")" == "" ]] && error "Value of Ymax is not listed in the data files"
-    [[ "$(grep "${CONFIG["y"]}" "${DATA[@]}")" == "" ]] && error "Value of Ymin is not listed in the data files"
-
-
-    set +v
-    set +x
-
-
   fi
 
   if [[ "${CONFIG["X"]}" != "auto" && "${CONFIG["X"]}" != "max" && "${CONFIG["x"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]
@@ -752,9 +692,6 @@ function checkValues()
 
     # convert to unix timestamp, then compare
     [[ $(echo "$(date "+%s" -d "$(echo "${CONFIG["X"]}" | sed 's/[^0-9[:space:]\:]//g')") <= $(date "+%s" -d "$(echo "${CONFIG["x"]}" | sed 's/[^0-9[:space:]\:]//g')")" | bc) -eq 1 ]] && error "Value of Xmin is greater or equal than value of Xmax"
-
-    # je v datovych souborech?
-
   fi
   
   [[ "${CONFIG["n"]}" == "" ]] && CONFIG["n"]="main"      # default name
@@ -805,6 +742,9 @@ function createAnim()
     error "error creating directory $directory, details:\n$st"
 
   fi
+
+
+  CONFIG["n"]="$directory"
 
 
   # jak odlisime ruzne krivky?
@@ -874,7 +814,7 @@ function createAnim()
   play "$directory/anim.mp4"
 }
 #-------------------------------------------------------------------------------
-# 
+# function to play created animation
 # arguments:
 #   1) file to play
 #-------------------------------------------------------------------------------
@@ -888,9 +828,14 @@ function play()
 #-------------------------------------------------------------------------------
 function cleanup()
 {
-  echo "uklid"
-  
+  find "${CONFIG["n"]}" -maxdepth 1 -name '*.png' -exec rm {} \;
 }
+#-------------------------------------------------------------------------------
+# signal reactions
+#-------------------------------------------------------------------------------
+trap cleanup EXIT
+trap 'trap - EXIT; cleanup' INT TERM
+#-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
   # main configuration variables, global for whole file
@@ -912,19 +857,13 @@ function cleanup()
   
   typeset -a SWITCHES               # field for all processed switches
   typeset -a DATA			        # filed containing data files
-  typeset -a TEMPFILES		        # temporary files
   typeset -a GNUPLOTPARAMS          # field for gnuplot parameters
   typeset -a EFFECTPARAMS           # field for effect parameters
   typeset -a CRITICALVALUES         # field for critical values
 
-  FRAMES=0					        # total number of generated frames
-  RECORDS=0					        # number of records in the file .... ?
-  
-  MULTIPLOT="false"
-  
+  MULTIPLOT="false"                 # more curves in one animation
   VERBOSE=0                         # debug information
   PLAY=0                            # play after script has finished
-
 
 #-------------------------------------------------------------------------------
   readParams "$@"
