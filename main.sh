@@ -156,21 +156,6 @@ function readParams()
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
 
            local ret="$(date "+$(printf "%s" "${config["t"]}")" -d "$(echo "$OPTARG")" 2>&1)"     # vystup zpracovani
-
-           # / je ok
-           # _ nahradit za " "
-           # %[yY] %[m] %d -> oddelovat vzdy pomoci / !!! funguje taktez oddeleni pomoci jakehokoliv ascii pismena
-           # %H %M %S %I %k %l -> oddelovat pomoci :
-           # %[yY] %m %d a %H %M %S %I %k %l skupiny navzajem oddelovat pomoci mezer !
-           # %j nepouzivat -> neprisel jsem na to, jak oddelit od ostatnich sekvenci ! 
-           # nezalezi na poradi skupin
-
-           # %u -> na slovni oznaceni vraci cislo dne
-
-           # bud jsou hned za sebou nebo oddelene necim jinym nez '/'
-
-           echo "ret: $ret"
-
            [[ "$ret" != "" ]] && error "error while converting timestamp to provided value \'$OPTARG\', details:\n $ret"
 
            # first print the timestamp, then process by date with the argument of the switch -X
@@ -190,21 +175,11 @@ function readParams()
            # first check if the format of the argument is correct, then check by date
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the switch -x does not match"
 
-           local ret=""
+           local ret="$(date "+$(printf "%s" "${config["t"]}")" -d "$(echo "$OPTARG")" 2>&1)"     # vystup zpracovani
+           [[ "$ret" != "" ]] && error "error while converting timestamp to provided value \'$OPTARG\', details:\n $ret"
 
-           for((i = 0; i < ${#CONFIG["t"]}; i++))   # seperate control sequences, that are just after each other, by space
-           do
-             if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
-             then
-               ret="$ret${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
-               i=$((i + 3))
-             else
-               ret="$ret${OPTARG:$i:1}"
-             fi
-           done
-
-           # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"
+           # first print the timestamp, then process by date with the argument of the switch -x
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG")" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"
 
          fi
 
@@ -750,12 +725,26 @@ function readConfig()
 # parameters:
 #   function takes no parameters, it works with global variables
 # function checks value of Xmax, Xmin, Ymax, Ymin and name of the output directory
+# furthermore function checks if the values are in the data files
 #-------------------------------------------------------------------------------
 function checkValues()
 {
-  if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" && "${CONFIG["y"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]
+  if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" && "${CONFIG["y"]}" != "auto" && "${CONFIG["y"]}" != "min" ]]
   then
+    echo "podminka"
     [[ $(echo "${CONFIG["Y"]} <= ${CONFIG["y"]}" | bc) -eq 1 ]] && error "Value of Ymin is greater or equal than value of Ymax"
+
+    set -v
+    set -x
+
+    [[ "$(grep "${CONFIG["Y"]}" "${DATA[@]}")" == "" ]] && error "Value of Ymax is not listed in the data files"
+    [[ "$(grep "${CONFIG["y"]}" "${DATA[@]}")" == "" ]] && error "Value of Ymin is not listed in the data files"
+
+
+    set +v
+    set +x
+
+
   fi
 
   if [[ "${CONFIG["X"]}" != "auto" && "${CONFIG["X"]}" != "max" && "${CONFIG["x"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]
@@ -763,9 +752,32 @@ function checkValues()
 
     # convert to unix timestamp, then compare
     [[ $(echo "$(date "+%s" -d "$(echo "${CONFIG["X"]}" | sed 's/[^0-9[:space:]\:]//g')") <= $(date "+%s" -d "$(echo "${CONFIG["x"]}" | sed 's/[^0-9[:space:]\:]//g')")" | bc) -eq 1 ]] && error "Value of Xmin is greater or equal than value of Xmax"
+
+    # je v datovych souborech?
+
   fi
   
   [[ "${CONFIG["n"]}" == "" ]] && CONFIG["n"]="main"      # default name
+
+  if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" ]]
+  then
+    [[ "$(grep "${CONFIG["Y"]}" "${DATA[@]}")" == "" ]] && error "Value of Ymax is not listed in the data files"
+  fi
+    
+  if [[ "${CONFIG["y"]}" != "auto" && "${CONFIG["y"]}" != "min" ]]
+  then
+    [[ "$(grep "${CONFIG["y"]}" "${DATA[@]}")" == "" ]] && error "Value of Ymin is not listed in the data files"
+  fi
+
+  if [[ "${CONFIG["X"]}" != "auto" && "${CONFIG["X"]}" != "max" ]]
+  then
+    [[ "$(grep "${CONFIG["X"]}" "${DATA[@]}")" == "" ]] && error "Value of Xmax is not listed in the data files"
+  fi
+    
+  if [[ "${CONFIG["x"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]
+  then
+    [[ "$(grep "${CONFIG["x"]}" "${DATA[@]}")" == "" ]] && error "Value of Xmin is not listed in the data files"
+  fi
 }
 #-------------------------------------------------------------------------------
 # function for creating animation
@@ -926,11 +938,11 @@ function cleanup()
   done
 
   readConfig "${CONFIG["f"]}"   # read the configuration file
-  checkValues               # check provided values of the switches or directives from the configuration file
   
-  verbose "data files: ${DATA[@]}"   # report data files
- 
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
+  verbose "data files: ${DATA[@]}"   # report data files
+  checkValues               # check provided values of the switches or directives from the configuration file
+
   #sortFiles
   # prozatim asi neni nutne, mozna to gnuplot umi primo v zavislosti na datu?
   # pokud by to bylo nutne, tak jeste pridat serazeni zaznamu v samotnem souboru ?
