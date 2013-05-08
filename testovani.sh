@@ -115,8 +115,8 @@ function switchTest2()
     eval "$1 -t \"%Y/%m/%d\" -$2 \"2012\\13\\01\"" 
     [[ "$?" == "0" ]] && FAIL=1
 
-    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"2012\\12\\32\""
-    eval "$1 -t \"%Y/%m/%d\" -$2 \"2012\\12\\32\"" 
+    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"2012/12/32\""
+    eval "$1 -t \"%Y/%m/%d\" -$2 \"2012/12/32\"" 
     [[ "$?" == "0" ]] && FAIL=1
 
   else
@@ -137,12 +137,12 @@ function switchTest2()
     eval "$1 -t \"%H:%M:%S\" -$2 \"12:59:61\"" &>/dev/null
     [[ "$?" == "0" ]] && FAIL=1
 
-    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"2012\\13\\01\"" &>/dev/null
-    eval "$1 -t \"%Y/%m/%d\" -$2 \"2012\\13\\01\"" &>/dev/null
+    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"2012/13/01\"" &>/dev/null
+    eval "$1 -t \"%Y/%m/%d\" -$2 \"2012/13/01\"" &>/dev/null
     [[ "$?" == "0" ]] && FAIL=1
 
-    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"2012\\12\\32\"" &>/dev/null
-    eval "$1 -t \"%Y/%m/%d\" -$2 \"2012\\12\\32\"" &>/dev/null
+    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"2012/12/32\"" &>/dev/null
+    eval "$1 -t \"%Y/%m/%d\" -$2 \"2012/12/32\"" &>/dev/null
     [[ "$?" == "0" ]] && FAIL=1
 
   fi
@@ -152,7 +152,7 @@ function switchTest2()
 # parameters:
 #   1)full path of the script
 #   2)the switch, which should be tested
-# checking: matching values of switches -Y and -y
+# checking: values of switches -Y and -y
 #-------------------------------------------------------------------------------
 function switchTest3()
 {
@@ -220,6 +220,158 @@ function switchTest3()
   fi
 }
 #-------------------------------------------------------------------------------
+# function for checking the script parameters
+# parameters:
+#   1)full path of the script
+#   2)the switch, which should be tested
+# checking: values of switches -S, -T and -F
+#-------------------------------------------------------------------------------
+function switchTest4()
+{
+  if [[ "$DISPLAY" == "1" ]]
+  then
+
+    echo "testing $1 -$2 \"-5\""
+    eval "$1 -$2 \"-5\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"+5,5\""
+    eval "$1 -$2 \"+5,5\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"+5.+5\""
+    eval "$1 -$2 \"+5.+5\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"0\""
+    eval "$1 -$2 \"0\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"0.0\""
+    eval "$1 -$2 \"0.0\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+  else
+
+    echo "testing $1 -$2 \"-5\"" &>/dev/null
+    eval "$1 -$2 \"-5\""  &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"+5,5\"" &>/dev/null
+    eval "$1 -$2 \"+5,5\""  &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"+5.+5\"" &>/dev/null
+    eval "$1 -$2 \"+5.+5\""  &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"0\"" &>/dev/null
+    eval "$1 -$2 \"0\""  &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -$2 \"0.0\"" &>/dev/null
+    eval "$1 -$2 \"0.0\""  &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+  fi
+}
+#-------------------------------------------------------------------------------
+# function for checking the script parameters
+# parameters:
+#   1)full path of the script
+#   2)the switch, which should be tested
+# checking: values of switch -c
+#-------------------------------------------------------------------------------
+function switchTest5()
+{
+  if [[ "$DISPLAY" == "1" ]]
+  then
+
+    echo "testing $1 -t \"%H:%M:%S\" -$2 \"y=+5,5\""
+    eval "$1 -t \"%H:%M:%S\" -$2 \"+5,5\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -t \"%H:%M:%S\" -$2 \"x=12:61:00\""
+    eval "$1 -t \"%H:%M:%S\" -$2 \"x=12:61:00\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+    
+    echo "testing $1 -t \"%H:%M:%S\" -$2 \"x=12:59:61\""
+    eval "$1 -t \"%H:%M:%S\" -$2 \"x=12:59:61\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"x=2012/13/01\""
+    eval "$1 -t \"%Y/%m/%d\" -$2 \"x=2012/13/01\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"x=2012/12/32\""
+    eval "$1 -t \"%Y/%m/%d\" -$2 \"x=2012/12/32\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+  else
+
+    echo "testing $1 -t \"%H:%M:%S\" -$2 \"y=+5,5\"" &>/dev/null
+    eval "$1 -t \"%H:%M:%S\" -$2 \"+5,5\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -t \"%H:%M:%S\" -$2 \"x=12:61:00\"" &>/dev/null
+    eval "$1 -t \"%H:%M:%S\" -$2 \"x=12:61:00\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+    
+    echo "testing $1 -t \"%H:%M:%S\" -$2 \"x=12:59:61\"" &>/dev/null
+    eval "$1 -t \"%H:%M:%S\" -$2 \"x=12:59:61\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"x=2012/13/01\"" &>/dev/null
+    eval "$1 -t \"%Y/%m/%d\" -$2 \"x=2012/13/01\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1 -t \"%Y/%m/%d\" -$2 \"x=2012/12/32\"" &>/dev/null
+    eval "$1 -t \"%Y/%m/%d\" -$2 \"x=2012/12/32\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+  fi
+}
+#-------------------------------------------------------------------------------
+# function for checking the script parameters
+# parameters:
+#   1)full path of the script
+#   2)the switch, which should be tested
+# checking: values of switch -f
+#-------------------------------------------------------------------------------
+function switchTest6()
+{
+  if [[ "$DISPLAY" == "1" ]]
+  then
+
+    echo "testing $1-$2 \"/abc\""
+    eval "$1 -$2 \"/abc\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1-$2 \"/dev/null\""
+    eval "$1 -$2 \"/dev/null\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1-$2 \"/etc/shadow\""
+    eval "$1 -$2 \"/etc/shadow\"" 
+    [[ "$?" == "0" ]] && FAIL=1
+
+  else
+
+    echo "testing $1-$2 \"/abc\"" &>/dev/null
+    eval "$1 -$2 \"/abc\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1-$2 \"/dev/null\"" &>/dev/null
+    eval "$1 -$2 \"/dev/null\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+    echo "testing $1-$2 \"/etc/shadow\"" &>/dev/null
+    eval "$1 -$2 \"/etc/shadow\"" &>/dev/null
+    [[ "$?" == "0" ]] && FAIL=1
+
+  fi
+}
+#-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
   # we are only interested in the first and second passed argument, nothing more
@@ -269,7 +421,6 @@ function switchTest3()
     verbose "test \"switchTest2\" passed"
   fi
 
-
   switchTest3 "$TEST" "Y"
   switchTest3 "$TEST" "y"
   
@@ -279,6 +430,37 @@ function switchTest3()
   else
     verbose "test \"switchTest3\" passed"
   fi
+
+  switchTest4 "$TEST" "S"
+  switchTest4 "$TEST" "T"
+  switchTest4 "$TEST" "F"
+  
+  if [[ "$FAIL" == "1" ]] 
+  then
+    error "test \"switchTest4\" failed"
+  else
+    verbose "test \"switchTest4\" passed"
+  fi
+
+  switchTest5 "$TEST" "c"
+  
+  if [[ "$FAIL" == "1" ]] 
+  then
+    error "test \"switchTest5\" failed"
+  else
+    verbose "test \"switchTest5\" passed"
+  fi
+
+  switchTest6 "$TEST" "f"
+  
+  if [[ "$FAIL" == "1" ]] 
+  then
+    error "test \"switchTest6\" failed"
+  else
+    verbose "test \"switchTest6\" passed"
+  fi
+
+  # ------- switches checked
 
 
 
