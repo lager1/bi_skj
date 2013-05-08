@@ -150,34 +150,31 @@ function readParams()
          
          if ! [[ "$OPTARG" == "auto" || "$OPTARG" == "max" ]] # none of acceptable text values
          then
+
            # there may be specific value, needs to be checked
            # first check if the format of the argument is correct, then check by date
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
 
+           local ret="$(date "+$(printf "%s" "${config["t"]}")" -d "$(echo "$OPTARG")" 2>&1)"     # vystup zpracovani
 
-           local ret=""
+           # / je ok
+           # _ nahradit za " "
+           # %[yY] %[m] %d -> oddelovat vzdy pomoci / !!! funguje taktez oddeleni pomoci jakehokoliv ascii pismena
+           # %H %M %S %I %k %l -> oddelovat pomoci :
+           # %[yY] %m %d a %H %M %S %I %k %l skupiny navzajem oddelovat pomoci mezer !
+           # %j nepouzivat -> neprisel jsem na to, jak oddelit od ostatnich sekvenci ! 
+           # nezalezi na poradi skupin
 
-           for((i = 0; i < ${#CONFIG["t"]}; i++))   # seperate control sequences, that are just after each other, by space
-           do
-             if [[ "${CONFIG["t"]:$i:1}" == "%" && "${CONFIG["t"]:$((i + 1)):1}" =~ ^[dHjklmMSuUVwWyY]$ && "${CONFIG["t"]:$((i + 2)):1}" == "%" && "${CONFIG["t"]:$((i + 3)):1}" =~ ^[dHjklmMSuUVwWyY]$ ]] # two control sequences just after each other
-             then
-               ret="$ret${OPTARG:$i:2} ${OPTARG:$((i + 2)):2}"
-               i=$((i + 3))
-             else
-               ret="$ret${OPTARG:$i:1}"
-             fi
-           done
+           # %u -> na slovni oznaceni vraci cislo dne
 
-           #warning "tady"
-           #set -v
-           #set -x
+           # bud jsou hned za sebou nebo oddelene necim jinym nez '/'
 
-           # first print the timestamp, then process by date with the argument of the switch -X, it is important that the argument contains only numbers
-           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$:$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
+           echo "ret: $ret"
 
+           [[ "$ret" != "" ]] && error "error while converting timestamp to provided value \'$OPTARG\', details:\n $ret"
 
-
-           #[[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$ret" | sed 's$/$$g')" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
+           # first print the timestamp, then process by date with the argument of the switch -X
+           [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG")" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
 
          fi
 
@@ -934,17 +931,13 @@ function cleanup()
   verbose "data files: ${DATA[@]}"   # report data files
  
   checkFiles "$@"           # check the data files at this point, so its not necessary later - possible errors are solved close to the start
-  echo "play: $PLAY"
-
-  exit 0
-  # debug
-
   #sortFiles
   # prozatim asi neni nutne, mozna to gnuplot umi primo v zavislosti na datu?
   # pokud by to bylo nutne, tak jeste pridat serazeni zaznamu v samotnem souboru ?
   # samotna data v datovych souborech by mela byt setridena podle casovych udaju, gnuplot si s tim sice poradi, ale vypada to zvlastne
   # pokud pridame smooth unique, tak neni treba data sortovat, gnuplot to udela za nas
 
-  createAnim
+  #createAnim
+  # pouze v ramci debugu
 
 
