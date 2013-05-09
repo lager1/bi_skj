@@ -12,40 +12,9 @@
 #
 #
 
-
-
-# dodefinovat v zadani, ze timestamp a hodnota jsou navzajem oddeleny pomoci mezery v datovem souboru
-
-# prozatim implementovane vsechny povinne prepinace
-# navic definovan prepinac -v ==> verbose
-# navic definovan prepinac -p ==> play
-#
-#
-# TODO: 
-#   zkontrolovat funkci na cteni parametru -> jsou definovany vsechny povinne i volitelne prepinace?
-#   jsou vsechny promenne zpracovany spravne ?
-#   
-#
-#   vymyslet novy efekt ?
-
-
-#
-# pokud by se melo kreslit vice grafu pro stejny casovy interval, tak:
-# pokud se neshouji casove udaje pro vsechny soubory -> odriznout prvni casti vsech souboru a navzajem porovnat diffem
-# -> error uzivateli, spatny format dat
-
-
-# otazka na konfiguracni soubor:
-# text začínající znakem # představuje komentář až do konce řádku.
-# ==> takze pokud zacina text mezerou(nebo cimkoliv jinym) a nasleduje # tak to je komentar ?
-# z prikladu to ale vypada, ze komentar je cokoliv od znaku # !!!!
-
-
-# jak se zachovat v pripade, ze je na radce zadan prepinac u ktereho je pripustnych vice vyskytu a zaroven bude zadana odpovidajici direktiva v konfiguracnim souboru
-
-
-
-# napisu nekam do manualu, ze kontrolni sekvence %t musi byt vzdy oddelene nejakym znakem
+# two more switches defined:
+# switch -v ==> verbose
+# switch -p ==> play
 
 
 #-------------------------------------------------------------------------------
@@ -229,7 +198,7 @@ function readParams()
            then
              CONFIG["c"]="${CONFIG["c"]}$i"              # save the argument of the switch, this way it can be displayed by verbose
            else
-             CONFIG["c"]="${CONFIG["c"]} $i"              # save the argument of the switch, this way it can be displayed by verbose
+             CONFIG["c"]="${CONFIG["c"]} $i"             # save the argument of the switch, this way it can be displayed by verbose
            fi
 
          done
@@ -256,15 +225,15 @@ function readParams()
          ! [[ "${SWITCHES[@]}" =~ g ]] &&	# check if this particular switch was processed on the command line, do not save duplicit values
            SWITCHES[$((switches_idx++))]="g";;	# save the processed switch
    
-   # tady jeste upravit podle efektu !!
       e) # EFFECTPARAMS
 		 [ -z "$OPTARG" ] && error "the value of the switch -e was not provided"
-		 OPTARG=`echo "$OPTARG" | tr ":" " "`	# change the seperator to space so we could iterate
+		 OPTARG="$(echo "$OPTARG" | tr ":" " ")"	# change the seperator to space so we could iterate
 		 for i in $OPTARG
 		 do
-		   ! [[ "$i" =~ ^bgcolor=.*$ || "$i" =~ ^changebgcolor$ || "$i" =~ ^changespeed=[1-5]$ ]] && { # check the argument value
+		   ! [[ "$i" =~ ^bounce$ || "$i" =~ ^factor=[5-9]$ ]] && { # check the argument value
              error "wrong argument of the switch -e"; }
 		   EFFECTPARAMS[$((eff_params_idx++))]="$i"	# save the argument of the switch or a part of it
+           [[ "$i" =~ ^factor=[5-9]$ ]] && FACTOR="$(echo "$i" | sed 's/factor=//')"
 	     done
          SWITCHES[$((switches_idx++))]="e";;	# save the processed switch
 		 
@@ -610,10 +579,25 @@ function readConfig()
   if ! [[ "$(grep -i "^[^#]*EffectParams .*$" "$1")" == "" ]]	# check if the directive was provided in the configuration file
   then
     ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/[[:space:]]*#.*$//; $p')
-
-    echo "EFFECTPARAMS:: ret: $ret"
-    
+		   
     [[ "$ret" == "" ]] && error "value of the EffectParams directive was not provided in the configuration file \"$1\""
+    
+    for i in $(echo "$ret" | tr ":" " ")
+    do
+      ! [[ "$i" =~ ^bounce$ || "$i" =~ ^factor=[5-9]$ ]] && # check the argument value
+      error "wrong argument of the EffectParams directive in configuration file \"$1\""
+
+      EFFECTPARAMS[$((${#EFFECTPARAMS[@]} + 1))]="$ret" # save the argument of the directive
+      [[ "$i" =~ ^factor=[5-9]$ ]] && FACTOR="$(echo "$i" | sed 's/factor=//')"
+
+      if [[ "${CONFIG["e"]}" == "" ]]
+      then
+        CONFIG["e"]="${CONFIG["e"]}$ret"               # save the argument of the switch, this way it can be displayed by verbose
+      else
+        CONFIG["e"]="${CONFIG["e"]} $ret"              # save the argument of the switch, this way it can be displayed by verbose
+      fi
+
+    done
 
   fi
 
@@ -716,6 +700,7 @@ function createAnim()
   local tmp             # for temporary data
   local time_len        # timestamp length
   local more            # more plots
+  local ef_gnuplot      # gnuplot with effects
 
   while [[ -d "$directory" ]]
   do
@@ -890,7 +875,16 @@ function createAnim()
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
     more="'<head -$i $directory/data' using 1:2 with lines smooth unique; "
-    echo "set output '$directory/$(printf %0${#records}d $j).png'; $gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
+
+    if [[ "${EFFECTPARAMS[@]}" =~ bounce && "$((j % 10))" == "$FACTOR" ]] # add effect
+    then
+      ef_gnuplot="$gnuplot; unset yrange; set yrange[$YMIN:$((YMAX + 100))]"
+
+    else
+      ef_gnuplot="$gnuplot"
+    fi
+
+    echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
 
     ((j++))
   done
@@ -950,6 +944,7 @@ trap 'trap - EXIT; cleanup' INT TERM
   typeset -a EFFECTPARAMS           # field for effect parameters
   typeset -a CRITICALVALUES         # field for critical values
 
+  FACTOR=0                          # effect
   MULTIPLOT="false"                 # more curves in one animation
   VERBOSE=0                         # debug information
   PLAY=0                            # play after script has finished
