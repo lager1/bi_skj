@@ -757,39 +757,54 @@ function createAnim()
 
   if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" && "${CONFIG["y"]}" != "auto" && "${CONFIG["y"]}" != "min" ]]   # specific values
   then
-    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:${CONFIG["Y"]}]"
+    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:${CONFIG["Y"]}]; "
   fi
 
   if [[ "${CONFIG["Y"]}" == "max" && "${CONFIG["y"]}" != "min" && "${CONFIG["y"]}" != "auto" ]]    # max + value
   then
-    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]"
+    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]; "
   fi
 
   if [[ "${CONFIG["Y"]}" == "max" && "${CONFIG["y"]}" == "min" ]]    # max + min
   then
-    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]"
+    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]; "
   fi
 
   if [[ "${CONFIG["y"]}" == "min" && "${CONFIG["Y"]}" != "max" && "${CONFIG["Y"]}" != "auto" ]]    # min + value
   then
-    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):${CONFIG["Y"]}]"
+    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):${CONFIG["Y"]}]; "
   fi
 
+#-------------------------------------------------------------------------------
+  # setting X values
 
+  if [[ "${CONFIG["X"]}" != "auto" && "${CONFIG["X"]}" != "max" && "${CONFIG["x"]}" != "auto" && "${CONFIG["x"]}" != "min" ]]   # specific values
+  then
+    gnuplot="$gnuplot set xrange[\"${CONFIG["x"]}\":\"${CONFIG["X"]}\"]; "
+  fi
 
+  if [[ "${CONFIG["X"]}" == "max" && "${CONFIG["x"]}" != "min" && "${CONFIG["x"]}" != "auto" ]]   # max + value
+  then
+    gnuplot="$gnuplot set xrange[\"${CONFIG["x"]}\":\""$(sort -n -r "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\"]; "
+  fi
 
-    # dalsi if pro min/max
+  if [[ "${CONFIG["X"]}" == "max" && "${CONFIG["x"]}" == "min" ]]   # max + min
+  then
+    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\":\""$(sort -n -r "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\"]; "
+  fi
 
+  if [[ "${CONFIG["x"]}" == "min" && "${CONFIG["X"]}" != "max" && "${CONFIG["X"]}" != "auto" ]]   # min + value
+  then
+    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\":\"${CONFIG["X"]}\"]; "
+  fi
 
+  # values for "auto" dont need to be set
 
 
 # pripadne tady jeste pridat /data do datovych souboru
 
 # speed -> pocet zaznamu pro ktere uz se ma generovat dalsi snimek
 # time -> celkova doba animace
-
-# jeste nastavit meze
-
 
   if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ T && "${SWITCHES[@]}" =~ F ]] # Speed, Time and FPS
   then
