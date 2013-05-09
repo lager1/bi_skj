@@ -507,7 +507,7 @@ function readConfig()
     ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
     [[ "$ret" == "" ]] && error "value of the Speed directive was not provided in the configuration file \"$1\""
-    ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]*\.[1-9]([0-9])*$ ]] && {  # none of acceptable values, must not be zero
       error "wrong argument of the Speed directive in configuration file \"$1\""; }
     
     CONFIG["S"]="$ret"
@@ -522,7 +522,7 @@ function readConfig()
     ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
     
     [[ "$ret" == "" ]] && error "value of the Time directive was not provided in the configuration file \"$1\""
-    ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]*\.[1-9]([0-9])*$ ]] && {  # none of acceptable values, must not be zero
       error "wrong argument of the Time directive in configuration file \"$1\""; }
 
     CONFIG["T"]="$ret"
@@ -537,7 +537,7 @@ function readConfig()
     ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
     [[ "$ret" == "" ]] && error "value of the FPS directive was not provided in the configuration file \"$1\""
-    ! [[ "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ ]] && {  # none of acceptable values
+    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]*\.[1-9]([0-9])*$ ]] && {  # none of acceptable values, must not be zero
       error "wrong argument of the FPS directive in configuration file \"$1\""; }
 
     CONFIG["F"]="$ret"
