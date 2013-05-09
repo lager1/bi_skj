@@ -44,15 +44,6 @@
 # jak se zachovat v pripade, ze je na radce zadan prepinac u ktereho je pripustnych vice vyskytu a zaroven bude zadana odpovidajici direktiva v konfiguracnim souboru
 
 
-# Direktiva má právě jednu hodnotu (odpovídá jednomu arumentu na příkazové řádce).  -> jak to resit? v ukazkovem konfiguraku gnuplotparams -> vice slov !!
-
-# je mozne do matematickeho vyhodnoceni zaroven dat znak promenne s specifikovat tak o co se jedna? -> viz prednasky
-
-# ma cenu definovat ruzne navratove kody pro ruzne chyby?
-
-
-#
-# pridat reakci na signaly -> trap
 
 # napisu nekam do manualu, ze kontrolni sekvence %t musi byt vzdy oddelene nejakym znakem
 
@@ -302,7 +293,7 @@ function readParams()
       p) # PLAY
          SWITCHES[$((switches_idx++))]="p"	# save the processed switch
          CONFIG["p"]="1"
-         PLAY=1;;                        # set the value of global variable
+         PLAY=1;;                           # set the value of global variable
 
      \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
 		 exit 2;;
@@ -359,7 +350,7 @@ function checkFiles()
   # check if the provided TimeFormat is equal with the timestamp in the data file
   [[ "$(cat "${DATA[0]}" | cut -d " " -f1-$((words -1)) | tr "\n" " ")" =~ ^($(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;') )+$ ]] || error "provided TimeFormat and timestamp in data file \"${DATA[0]}\" does not match"
 
-  # cant check specific dates with only regex, but shoudl be enough
+  # cant check specific dates with only regex, but should be enough
 
   if [[ $# -gt 1 ]]
   then
@@ -570,7 +561,7 @@ function readConfig()
       
       if [[ "${CONFIG["c"]}" == "" ]]
       then
-        CONFIG["c"]="${CONFIG["c"]}$i"              # save the argument of the switch, this way it can be displayed by verbose
+        CONFIG["c"]="${CONFIG["c"]}$i"               # save the argument of the switch, this way it can be displayed by verbose
       else
         CONFIG["c"]="${CONFIG["c"]} $i"              # save the argument of the switch, this way it can be displayed by verbose
       fi
@@ -604,7 +595,7 @@ function readConfig()
 
     if [[ "${CONFIG["g"]}" == "" ]]
     then
-      CONFIG["g"]="${CONFIG["g"]}$ret"              # save the argument of the switch, this way it can be displayed by verbose
+      CONFIG["g"]="${CONFIG["g"]}$ret"               # save the argument of the switch, this way it can be displayed by verbose
     else
       CONFIG["g"]="${CONFIG["g"]} $ret"              # save the argument of the switch, this way it can be displayed by verbose
     fi
@@ -705,6 +696,7 @@ function checkValues()
 # function for creating animation
 # parameters: 
 #   function takes no parameters, it works with global variables
+#   sets ranges for graphs
 #-------------------------------------------------------------------------------
 function createAnim()
 {
@@ -713,6 +705,8 @@ function createAnim()
   local records=0       # total number of records
   local fps             # frames per second
   local frames          # number of frames
+  local gnuplot         # commands for gnuplot
+  local plot            # data to plot
 
   while [[ -d "$directory" ]]
   do
@@ -728,17 +722,66 @@ function createAnim()
 
   fi
 
-
   CONFIG["n"]="$directory"  # for cleanup
-
-
-  # jak odlisime ruzne krivky?
 
   for i in ${DATA[@]}
   do
-    records=$(echo "$records +$(wc -l < "$i")" | bc)
+    records=$(echo "$records +$(wc -l < "$i")" | bc)    # count the records
     cat "$i" >> "$directory/data"
   done
+
+
+  if [[ "${GNUPLOTPARAMS[@]}" != "" ]]      # other gnuplot parameters
+  then
+    gnuplot="set terminal png size 1024,768; set font 'verdana'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; set ${GNUPLOTPARAMS[@]}; "
+
+  else
+    gnuplot="set terminal png size 1024,768; set font 'verdana'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; "
+  fi
+
+  if [[ "${CRITICALVALUES[@]}" != "" ]]     # critical values
+  then
+    for i in ${CRITICALVALUES[@]}
+    do
+      plot="$plot "$(echo $i | sed 's/x=//; s/y=//')","
+    done
+  fi
+
+  #if [[ "$MULTIPLOT" == "true" ]]
+  #then
+  #  gnuplot="$gnuplot set multiplot; "
+  #fi
+
+#-------------------------------------------------------------------------------
+  # setting Y values
+
+  if [[ "${CONFIG["Y"]}" != "auto" && "${CONFIG["Y"]}" != "max" && "${CONFIG["y"]}" != "auto" && "${CONFIG["y"]}" != "min" ]]   # specific values
+  then
+    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:${CONFIG["Y"]}]"
+  fi
+
+  if [[ "${CONFIG["Y"]}" == "max" && "${CONFIG["y"]}" != "min" && "${CONFIG["y"]}" != "auto" ]]    # max + value
+  then
+    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]"
+  fi
+
+  if [[ "${CONFIG["Y"]}" == "max" && "${CONFIG["y"]}" == "min" ]]    # max + min
+  then
+    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]"
+  fi
+
+  if [[ "${CONFIG["y"]}" == "min" && "${CONFIG["Y"]}" != "max" && "${CONFIG["Y"]}" != "auto" ]]    # min + value
+  then
+    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):${CONFIG["Y"]}]"
+  fi
+
+
+
+
+    # dalsi if pro min/max
+
+
+
 
 # pripadne tady jeste pridat /data do datovych souboru
 
@@ -766,26 +809,36 @@ function createAnim()
 
   if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ F ]] # Speed and FPS
   then
-   echo "neco" 
+    :
 
   fi
 
 
   if [[ "${SWITCHES[@]}" =~ T && "${SWITCHES[@]}" =~ F ]] # Time and FPS
   then
-   echo "neco2" 
+    :
 
   fi
 
-  echo "pocet snimku je $frames"
-  echo "fps je: $fps"
+#  echo "pocet snimku je $frames"
+#  echo "fps je: $fps"
   
   # zacneme hned na prvnim nasobku ne na 0, koncime nasobkem records
   # start at the first multiple, end at the records
   local j=0
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
-    echo "set terminal png size 1024,768; set font 'verdana'; set output '$directory/$(printf %0${#records}d $j).png'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
+    # toto funguje, takto lze predavat parametry gnuplotu
+    #echo "$gnuplot; set output '$directory/$(printf %0${#records}d $j).png'; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
+
+    # pridani kritickych hodnot
+
+    echo "$gnuplot; set output '$directory/$(printf %0${#records}d $j).png'; plot $plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
+
+    #echo "set terminal png size 1024,768; set font 'verdana'; set output '$directory/$(printf %0${#records}d $j).png'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set nokey; set ${GNUPLOTPARAMS[@]}; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
+    
+    
+#echo "set terminal png size 1024,768; set font 'verdana'; set output '$directory/$(printf %0${#records}d $j).png'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
     
     ((j++))
 
@@ -794,32 +847,35 @@ function createAnim()
 
 # frame rate ffmpegu pomoci -r
 
-  ffmpeg -r "$fps" -i "$directory/%0${#records}d.png" -vcodec libx264 "$directory/anim.mp4" 
+  ffmpeg -r "$fps" -i "$directory/%0${#records}d.png" -vcodec libx264 "$directory/anim.mp4" &>/dev/null
 
   play "$directory/anim.mp4"
 }
 #-------------------------------------------------------------------------------
 # function to play created animation
-# arguments:
+# parameters:
 #   1) file to play
 #-------------------------------------------------------------------------------
 function play()
 {
   (($PLAY)) || return;
-  mplayer "$1"
+  mplayer "$1" &>/dev/null
 }
 #-------------------------------------------------------------------------------
-# 
+# function to remove all the created frames
+# parameters:
+#   function takes no parameters
 #-------------------------------------------------------------------------------
 function cleanup()
 {
   find "${CONFIG["n"]}" -maxdepth 1 -name '*.png' -exec rm {} \;
+  find "${CONFIG["n"]}" -maxdepth 1 -name 'data' -exec rm {} \;
 }
 #-------------------------------------------------------------------------------
 # signal reactions
 #-------------------------------------------------------------------------------
-#trap cleanup EXIT
-#trap 'trap - EXIT; cleanup' INT TERM
+trap cleanup EXIT
+trap 'trap - EXIT; cleanup' INT TERM
 #-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
@@ -852,7 +908,7 @@ function cleanup()
 
 #-------------------------------------------------------------------------------
   readParams "$@"
-  shift `expr $OPTIND - 1`	# posun na prikazove radce
+  shift `expr $OPTIND - 1`	# shift on the command line
 
   verbose "processed switches: ${SWITCHES[@]}"         # report processed switches
 
@@ -867,13 +923,6 @@ function cleanup()
   verbose "data files: ${DATA[@]}"   # report data files
   checkValues               # check provided values of the switches or directives from the configuration file
 
-  #sortFiles
-  # prozatim asi neni nutne, mozna to gnuplot umi primo v zavislosti na datu?
-  # pokud by to bylo nutne, tak jeste pridat serazeni zaznamu v samotnem souboru ?
-  # samotna data v datovych souborech by mela byt setridena podle casovych udaju, gnuplot si s tim sice poradi, ale vypada to zvlastne
-  # pokud pridame smooth unique, tak neni treba data sortovat, gnuplot to udela za nas
-
-  createAnim
-  # pouze v ramci debugu
+  createAnim                # create the final animation
 
 
