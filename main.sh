@@ -547,22 +547,14 @@ function readConfig()
 
   # ==================================
   # CRITICALVALUE
-  if ! [[ "$(grep -i "^[^#]*CriticalValue .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "$(grep -i "^[^#]*CriticalValue .*$" "$1")" == "" ]]	# check if the directive was provided in the configuration file
   then
     ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/[[:space:]]*#.*$//; $p')
   
     [[ "$ret" == "" ]] && error "value of the CriticalValue directive was not provided in the configuration file \"$1\""
     
-    #for i in $(echo "$ret" | tr ":" " ")
     for i in $(echo "$ret" | sed 's/:x=/:x= /; s/:y=/:y= /')
     do
-
-    # oddelovacem jednotlivych sekvenci je :y= nebo :x=
-
-
-      #set -v
-      #set -x
-
 
       if [[ "$i" =~ x=.*$ ]]
       then
@@ -572,9 +564,6 @@ function readConfig()
       fi
 
       # check both x and y, x values are in format defined by Timeformat
-      #! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//; s/[^0-9]//g')")"$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
-      
-      
       ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
 
       CRITICALVALUES[$((${#CRITICALVALUES[@]} + 1))]="$i" # save the argument of the directive
@@ -606,7 +595,7 @@ function readConfig()
 
   # ==================================
   # GNUPLOTPARAMS
-  if ! [[ "$(grep -i "^[^#]*GnuplotParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "$(grep -i "^[^#]*GnuplotParams .*$" "$1")" == "" ]]	# check if the directive was provided in the configuration file
   then
     ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/[[:space:]]*#.*$//; $p')
 
@@ -626,8 +615,7 @@ function readConfig()
 
   # ==================================
   # EFFECTPARAMS
-  # direktiva muze byt uvedene vicekrat, kontrola neni potreba
-  if ! [[ "$(grep -i "^[^#]*EffectParams .*$" "$1")" == "" ]]	# check if this particular switch was processed on the command line
+  if ! [[ "$(grep -i "^[^#]*EffectParams .*$" "$1")" == "" ]]	# check if the directive was provided in the configuration file
   then
     ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/[[:space:]]*#.*$//; $p')
 
