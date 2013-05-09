@@ -553,11 +553,29 @@ function readConfig()
   
     [[ "$ret" == "" ]] && error "value of the CriticalValue directive was not provided in the configuration file \"$1\""
     
-    for i in $(echo "$ret" | tr ":" " ")
+    #for i in $(echo "$ret" | tr ":" " ")
+    for i in $(echo "$ret" | sed 's/:x=/:x= /; s/:y=/:y= /')
     do
 
+    # oddelovacem jednotlivych sekvenci je :y= nebo :x=
+
+
+      #set -v
+      #set -x
+
+
+      if [[ "$i" =~ x=.*$ ]]
+      then
+
+        local return="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//')" 2>&1)" 
+        [[ "x=$return" != "$i" ]] && error "error while converting timestamp to provided value \'$ret\' in configuration file \"$1\", details:\n $return"
+      fi
+
       # check both x and y, x values are in format defined by Timeformat
-      ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//; s/[^0-9]//g')")"$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
+      #! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//; s/[^0-9]//g')")"$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
+      
+      
+      ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
 
       CRITICALVALUES[$((${#CRITICALVALUES[@]} + 1))]="$i" # save the argument of the directive
       
