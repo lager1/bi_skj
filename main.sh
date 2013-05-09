@@ -216,11 +216,12 @@ function readParams()
       c) # CRITICALVALUE
 		 [ -z "$OPTARG" ] && error "the value of the switch -c was not provided"
          
-         for i in $(echo "$OPTARG" | tr ":" " ")
+         for i in $(echo "$OPTARG" | sed 's/:x=/ x=/g; s/:y=/ y=/g')
          do
 
            # check both x and y, x values are in format defined by Timeformat
-           ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//; s/[^0-9]//g')" 2>/dev/null)"$ ]] && error "wrong argument of the switch -c"
+           ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//')" 2>/dev/null)"$ ]] && error "wrong argument of the switch -c"
+
 
            CRITICALVALUES[$((crit_val_idx++))]="$i" # save the argument of the switch
 
@@ -544,7 +545,7 @@ function readConfig()
   
     [[ "$ret" == "" ]] && error "value of the CriticalValue directive was not provided in the configuration file \"$1\""
     
-    for i in $(echo "$ret" | sed 's/:x=/:x= /; s/:y=/:y= /')
+    for i in $(echo "$ret" | sed 's/:x=/ x=/; s/:y=/ y=/')
     do
 
       if [[ "$i" =~ x=.*$ ]]
@@ -752,6 +753,12 @@ function createAnim()
   #  gnuplot="$gnuplot set multiplot; "
   #fi
 
+
+  # debug
+  echo "plot: $plot"
+  exit 0
+
+
 #-------------------------------------------------------------------------------
   # setting Y values
 
@@ -799,12 +806,6 @@ function createAnim()
   fi
 
   # values for "auto" dont need to be set
-
-
-# pripadne tady jeste pridat /data do datovych souboru
-
-# speed -> pocet zaznamu pro ktere uz se ma generovat dalsi snimek
-# time -> celkova doba animace
 
   if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ T && "${SWITCHES[@]}" =~ F ]] # Speed, Time and FPS
   then
@@ -906,7 +907,7 @@ trap 'trap - EXIT; cleanup' INT TERM
   CONFIG["F"]=25                    # frames per second
   CONFIG["c"]=""                    # critical values, just for verbose function
   CONFIG["f"]=""                    # configuration file
-  CONFIG["n"]=""                    # name of the output directory
+  CONFIG["n"]="main"                # name of the output directory
   CONFIG["l"]=""                    # legend of the graph
   CONFIG["g"]=""                    # parameters for gnuplot, just for verbose function
   CONFIG["E"]="true"                # IgnoreErrors, do not ignore errors
