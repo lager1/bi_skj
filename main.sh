@@ -68,13 +68,15 @@
 #-------------------------------------------------------------------------------
 function warning()
 {
-  echo -en "\e[1;33mWARNING: \e[0m"     # print in green color
+  echo -en "\e[1;33mWARNING: \e[0m"     # print in yellow color
 
   for i in "$@"
   do
-    echo -en "\e[1;33m$i \e[0m"       # print in green color 
+    echo -en "\e[1;33m$i \e[0m"       # print in yellow color 
   done
   echo ""
+
+  [[ "${CONFIG["E"]}" == "true" ]] && exit 2;
 }
 #-------------------------------------------------------------------------------
 # function to print how to use this script
