@@ -157,7 +157,7 @@ function readParams()
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the switch -X does not match"
 
            local ret="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG")" 2>&1)"     # vystup zpracovani
-           [[ "$ret" != "" ]] && error "error while converting timestamp to provided value \'$OPTARG\', details:\n $ret"
+           [[ "$ret" != "$OPTARG" ]] && error "error while converting timestamp to provided value \'$OPTARG\', details:\n $ret"
 
            # first print the timestamp, then process by date with the argument of the switch -X
            [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG")" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -X does not match"
@@ -177,7 +177,7 @@ function readParams()
            [[ "$OPTARG" =~ ^$(echo "${CONFIG["t"]}" | sed 's/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the switch -x does not match"
 
            local ret="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG")" 2>&1)"     # vystup zpracovani
-           [[ "$ret" != "" ]] && error "error while converting timestamp to provided value \'$OPTARG\', details:\n $ret"
+           [[ "$ret" != "$OPTARG" ]] && error "error while converting timestamp to provided value \'$OPTARG\', details:\n $ret"
 
            # first print the timestamp, then process by date with the argument of the switch -x
            [[ "$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$OPTARG")" 2> /dev/null)" == "$OPTARG" ]] || error "provided timestamp format and argument of the switch -x does not match"
@@ -873,7 +873,7 @@ function cleanup()
   # samotna data v datovych souborech by mela byt setridena podle casovych udaju, gnuplot si s tim sice poradi, ale vypada to zvlastne
   # pokud pridame smooth unique, tak neni treba data sortovat, gnuplot to udela za nas
 
-  #createAnim
+  createAnim
   # pouze v ramci debugu
 
 
