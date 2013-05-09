@@ -708,6 +708,13 @@ function createAnim()
   local frames          # number of frames
   local gnuplot         # commands for gnuplot
   local plot            # data to plot
+  local len             # length of individual data files
+  local using           # how many columns
+  local columns         # columns of data file
+  local YMAX            # Ymax
+  local YMIN            # Ymin
+  local tmp             # for temporary data
+  local time_len        # timestamp length
 
   while [[ -d "$directory" ]]
   do
@@ -725,19 +732,56 @@ function createAnim()
 
   CONFIG["n"]="$directory"  # for cleanup
 
+  gnuplot="set terminal png size 1024,768; set font 'verdana'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; unset key; "
+#-------------------------------------------------------------------------------
+
+  YMAX="$(head -1 "${DATA[0]}" | awk '{ print $NF }')"
+  YMIN="$(head -1 "${DATA[0]}" | awk '{ print $NF }')"
+  time_len="$(head -1 "${DATA[0]}" | awk '{ for(i = 1; i < NF; i++); } END { print i; }')"
+
   for i in ${DATA[@]}
   do
-    records=$(echo "$records +$(wc -l < "$i")" | bc)    # count the records
-    cat "$i" >> "$directory/data"
+    tmp="$(cat "$i" | awk '{ print $NF }' | sort -n -r)"
+    [[ "$(echo "$(echo "$tmp" | head -1) > $YMAX" | bc)" == "1" ]] && YMAX="$(echo "$tmp" | head -1)"
+    [[ "$(echo "$(echo "$tmp" | tail -1) < $YMIN" | bc)" == "1" ]] && YMIN="$(echo "$tmp" | tail -1)"
   done
 
+  if [[ "$MULTIPLOT" == "true" ]]
+  then
+
+    cat "${DATA[0]}" >> "$directory/data"
+    gnuplot="$gnuplot set multiplot; "
+
+    for((i = 1; i < ${#DATA[@]}; i++))
+    do
+      len=$(wc -l < "${DATA[$i]}")
+
+      for((k = 1; k <= $len; k++))
+      do
+        num="$(sed -n ''${k}'p' "${DATA[$i]}" | awk '{ print $NF }')"
+        sed -i ''$k's/$/ '$num'/' "$directory/data"  # susbstitute on chosen line !
+      done
+    done        # finally all values for same times in one file
+    
+    columns="$columns$(head -1 "$directory/data" | wc -w)"
+    records="$(wc -l < "$directory/data")"   # count the records
+
+  else
+
+    for i in ${DATA[@]}
+    do
+      records=$(echo "$records +$(wc -l < "$i")" | bc)    # count the records
+      cat "$i" >> "$directory/data"
+    done
+    columns="$(head -1 "${DATA[0]}" | wc -w)"
+
+  fi
+
+#-------------------------------------------------------------------------------
 
   if [[ "${GNUPLOTPARAMS[@]}" != "" ]]      # other gnuplot parameters
   then
-    gnuplot="set terminal png size 1024,768; set font 'verdana'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; set ${GNUPLOTPARAMS[@]}; "
-
-  else
-    gnuplot="set terminal png size 1024,768; set font 'verdana'; set timefmt '${CONFIG["t"]}'; set xdata time; set format x '${CONFIG["t"]}'; set xlabel 'Time'; set ylabel 'Value'; set y2label 'Value'; set nokey; "
+    gnuplot="$gnuplot ${GNUPLOTPARAMS[@]}; "
   fi
 
   if [[ "${CRITICALVALUES[@]}" != "" ]]     # critical values
@@ -749,24 +793,10 @@ function createAnim()
         plot="$plot "$(echo $i | sed 's/y=//')","
 
       else      # x value
-
-#    set arrow from "19:03:05",graph(0,0) to "19:03:05",graph(1,1) nohead
-
-        #plot="$plot \""$(echo $i | sed 's/x=//')"\","
-        #plot="$plot const,t,"
         gnuplot="$gnuplot set arrow from \""$(echo "$i" | sed 's/x=//')"\",graph(0,0) to \""$(echo "$i" | sed 's/x=//')"\",graph(1,1) nohead; "
       fi
     done
   fi
-
-  #if [[ "$MULTIPLOT" == "true" ]]
-  #then
-  #  gnuplot="$gnuplot set multiplot; "
-  #fi
-
-
-
-
 
 #-------------------------------------------------------------------------------
   # setting Y values
@@ -778,17 +808,17 @@ function createAnim()
 
   if [[ "${CONFIG["Y"]}" == "max" && "${CONFIG["y"]}" != "min" && "${CONFIG["y"]}" != "auto" ]]    # max + value
   then
-    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]; "
+    gnuplot="$gnuplot set yrange[${CONFIG["y"]}:$YMAX]; "
   fi
 
   if [[ "${CONFIG["Y"]}" == "max" && "${CONFIG["y"]}" == "min" ]]    # max + min
   then
-    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):$(sort -r -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }')]; "
+    gnuplot="$gnuplot set yrange[$YMIN:$YMAX]; "
   fi
 
   if [[ "${CONFIG["y"]}" == "min" && "${CONFIG["Y"]}" != "max" && "${CONFIG["Y"]}" != "auto" ]]    # min + value
   then
-    gnuplot="$gnuplot set yrange[$(sort -n -k "$(head -1 "$directory/data" | wc -w)" "$directory/data" | head -1 | awk '{ print $NF }'):${CONFIG["Y"]}]; "
+    gnuplot="$gnuplot set yrange[$YMIN:${CONFIG["Y"]}]; "
   fi
 
 #-------------------------------------------------------------------------------
@@ -801,20 +831,22 @@ function createAnim()
 
   if [[ "${CONFIG["X"]}" == "max" && "${CONFIG["x"]}" != "min" && "${CONFIG["x"]}" != "auto" ]]   # max + value
   then
-    gnuplot="$gnuplot set xrange[\"${CONFIG["x"]}\":\""$(sort -n -r "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\"]; "
+    gnuplot="$gnuplot set xrange[\"${CONFIG["x"]}\":\""$(sort -n -r "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\"]; "
   fi
 
   if [[ "${CONFIG["X"]}" == "max" && "${CONFIG["x"]}" == "min" ]]   # max + min
   then
-    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\":\""$(sort -n -r "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\"]; "
+    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\":\""$(sort -n -r "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\"]; "
   fi
 
   if [[ "${CONFIG["x"]}" == "min" && "${CONFIG["X"]}" != "max" && "${CONFIG["X"]}" != "auto" ]]   # min + value
   then
-    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk '{ for(i = 1; i < NF; i++ ) print $i }')"\":\"${CONFIG["X"]}\"]; "
+    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\":\"${CONFIG["X"]}\"]; "
   fi
 
   # values for "auto" dont need to be set
+
+#-------------------------------------------------------------------------------
 
   if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ T && "${SWITCHES[@]}" =~ F ]] # Speed, Time and FPS
   then
@@ -824,9 +856,9 @@ function createAnim()
 
   if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ T ]] # Speed and Time
   then
-    # musime dopocitat fps
-    # -> musime vedet, kolik mame framu
-    # fps = pocet_snimku / cas
+    # need to calculate fps
+    # need to know how many frames we got
+    # fps = frames / time
     frames=$((records / ${CONFIG["S"]}))
     fps=$(($frames / ${CONFIG["T"]}))
   fi
@@ -834,47 +866,33 @@ function createAnim()
 
   if [[ "${SWITCHES[@]}" =~ S && "${SWITCHES[@]}" =~ F ]] # Speed and FPS
   then
-    :
-
+    fps="${CONFIG["F"]}"
+    # time is set by these two values
   fi
 
 
   if [[ "${SWITCHES[@]}" =~ T && "${SWITCHES[@]}" =~ F ]] # Time and FPS
   then
-    :
-
+    fps="${CONFIG["F"]}"
+    # calculate speed
+    CONFIG["S"]="$(echo "($records / ${CONFIG["F"]}) / ${CONFIG["T"]}")"
   fi
 
+  columns=$((columns - 2))
+  using="using 1:2 with lines smooth unique"
+  for((k = 1; k <= $columns; k++))
+  do
+    using="$using using 1:$((k + 2)) with lines smooth unique"
+  done
+  using="$using; "
 
-
-  # debug
-  #echo "plot: $plot"
-  #echo "gnuplot: $gnuplot"
-  #exit 0
-
-
-
-#  echo "pocet snimku je $frames"
-#  echo "fps je: $fps"
-  
-  # zacneme hned na prvnim nasobku ne na 0, koncime nasobkem records
   # start at the first multiple, end at the records
   local j=0
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
-    # toto funguje, takto lze predavat parametry gnuplotu
-    #echo "$gnuplot; set output '$directory/$(printf %0${#records}d $j).png'; plot '<head -$i $directory/data' using 1:2 with boxes smooth unique;" | gnuplot
-
-    # pridani kritickych hodnot
-
-    echo "$gnuplot; set output '$directory/$(printf %0${#records}d $j).png'; plot $plot '<head -$i $directory/data' using 1:2 with lines smooth unique;" | gnuplot #&>/dev/null
-    
+    echo "set output '$directory/$(printf %0${#records}d $j).png'; $gnuplot; plot $plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
     ((j++))
-
   done
-
-
-# frame rate ffmpegu pomoci -r
 
   ffmpeg -r "$fps" -i "$directory/%0${#records}d.png" -vcodec libx264 "$directory/anim.mp4" &>/dev/null
 
