@@ -715,6 +715,7 @@ function createAnim()
   local YMIN            # Ymin
   local tmp             # for temporary data
   local time_len        # timestamp length
+  local more            # more plots
 
   while [[ -d "$directory" ]]
   do
@@ -879,18 +880,18 @@ function createAnim()
   fi
 
   columns=$((columns - 2))
-  using="using 1:2 with lines smooth unique"
   for((k = 1; k <= $columns; k++))
   do
-    using="$using using 1:$((k + 2)) with lines smooth unique"
+    using="using 1:$((k + 2)) with lines smooth unique; "
   done
-  using="$using; "
 
   # start at the first multiple, end at the records
   local j=0
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
-    echo "set output '$directory/$(printf %0${#records}d $j).png'; $gnuplot; plot $plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
+    more="'<head -$i $directory/data' using 1:2 with lines smooth unique; "
+    echo "set output '$directory/$(printf %0${#records}d $j).png'; $gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
+
     ((j++))
   done
 
