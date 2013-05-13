@@ -804,20 +804,20 @@ function createAnim()
 
   if [[ "${CONFIG["X"]}" == "max" && "${CONFIG["x"]}" != "min" && "${CONFIG["x"]}" != "auto" ]]   # max + value
   then
-    gnuplot="$gnuplot set xrange[\"${CONFIG["x"]}\":\""$(sort -n -r "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\"]; "
+    gnuplot="$gnuplot set xrange[\"${CONFIG["x"]}\":\""$(sort -n -r "$directory/data" | head -1 | awk -v len=$time_len 'BEGIN { ORS=" " } { for(i = 1; i < len; i++ ) print $i }' | sed 's/ $//')"\"]; "
   fi
 
   if [[ "${CONFIG["X"]}" == "max" && "${CONFIG["x"]}" == "min" ]]   # max + min
   then
-    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\":\""$(sort -n -r "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\"]; "
+    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk -v len=$time_len 'BEGIN { ORS=" " } { for(i = 1; i < len; i++ ) print $i }' | sed 's/ $//')"\":\""$(sort -n -r "$directory/data" | head -1 | awk -v len=$time_len 'BEGIN { ORS=" " } { for(i = 1; i < len; i++ ) print $i }' | sed 's/ $//')"\"]; "
   fi
 
   if [[ "${CONFIG["x"]}" == "min" && "${CONFIG["X"]}" != "max" && "${CONFIG["X"]}" != "auto" ]]   # min + value
   then
-    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk -v len=$time_len '{ for(i = 1; i < len; i++ ) print $i }')"\":\"${CONFIG["X"]}\"]; "
+    gnuplot="$gnuplot set xrange[\""$(sort -n "$directory/data" | head -1 | awk -v len=$time_len 'BEGIN { ORS=" " } { for(i = 1; i < len; i++ ) print $i }' | sed 's/ $//')"\":\"${CONFIG["X"]}\"]; "
   fi
 
-  # values for "auto" dont need to be set
+  # values for "auto" on y axis do not need to be set
 
 #-------------------------------------------------------------------------------
 
@@ -855,6 +855,12 @@ function createAnim()
     using="using 1:$((k + 2)) with lines smooth unique; "
   done
 
+
+  echo "$gnuplot"
+  exit 0
+
+#-------------------------------------------------------------------------------
+
   # start at the first multiple, end at the records
   local j=0
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
@@ -869,7 +875,11 @@ function createAnim()
       ef_gnuplot="$gnuplot"
     fi
 
-    echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
+
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot
+    echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot
+
 
     ((j++))
   done
