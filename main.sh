@@ -150,21 +150,21 @@ function readParams()
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ ]] && {	# non-numeric value, should be int/float, must not be zero
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -S"; }
          SWITCHES[$((switches_idx++))]="S"	# save the processed switch
          CONFIG["S"]="$OPTARG";;            # save the argument of the switch
 
       T) # TIME
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ ]] && {	# non-numeric value, should be int/float, must not be zero
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -T"; }
          SWITCHES[$((switches_idx++))]="T"	# save the processed switch
          CONFIG["T"]="$OPTARG";;            # save the argument of the switch
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ ]] && {	# non-numeric value, should be int/float, must not be zero
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -F"; }
          SWITCHES[$((switches_idx++))]="F"	# save the processed switch
          CONFIG["F"]="$OPTARG";;            # save the argument of the switch
@@ -177,7 +177,6 @@ function readParams()
 
            # check both x and y, x values are in format defined by Timeformat
            ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//')" 2>/dev/null)"$ ]] && error "wrong argument of the switch -c"
-
 
            CRITICALVALUES[$((crit_val_idx++))]="$i" # save the argument of the switch
 
