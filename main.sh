@@ -494,15 +494,8 @@ function readConfig()
     for i in $(echo "$ret" | sed 's/:x=/ x=/; s/:y=/ y=/')
     do
 
-      if [[ "$i" =~ x=.*$ ]]
-      then
-
-        local return="$(date "+$(printf "%s" "${CONFIG["t"]}")" -d "$(echo "$i" | sed 's/x=//')" 2>&1)" 
-        [[ "x=$return" != "$i" ]] && error "error while converting timestamp to provided value \'$ret\' in configuration file \"$1\", details:\n $return"
-      fi
-
       # check both x and y, x values are in format defined by Timeformat
-      ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
+      ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')"$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
 
       CRITICALVALUES[$((${#CRITICALVALUES[@]} + 1))]="$i" # save the argument of the directive
       
@@ -629,7 +622,18 @@ function checkValues()
   then
 
     # convert to unix timestamp, then compare
-    [[ $(echo "$(date "+%s" -d "$(echo "${CONFIG["X"]}" | sed 's/[^0-9[:space:]\:]//g')") <= $(date "+%s" -d "$(echo "${CONFIG["x"]}" | sed 's/[^0-9[:space:]\:]//g')")" | bc) -eq 1 ]] && error "Value of Xmin is greater or equal than value of Xmax"
+    # date is not reliable with some characters !!
+    X=$(date "+%s" -d "$(echo "${CONFIG["X"]}")" 2>/dev/null)
+    X="$?"
+
+    x=$(date "+%s" -d "$(echo "${CONFIG["x"]}")" 2>/dev/null)
+    x="$?"
+
+    if [[ "$X" == "0" && "$x" == "0" ]] # no errors
+    then
+      [[ $(echo "$(date "+%s" -d "$(echo "${CONFIG["X"]}")" 2>/dev/null) <= $(date "+%s" -d "$(echo "${CONFIG["x"]}")" 2>/dev/null)" | bc) -eq 1 ]] && error "Value of Xmin is greater or equal than value of Xmax"
+
+    fi
   fi
   
   [[ "${CONFIG["n"]}" == "" ]] && CONFIG["n"]="main"      # default name
@@ -743,7 +747,7 @@ function createAnim()
 #-------------------------------------------------------------------------------
   if [[ "${CONFIG["l"]}" != "" ]]           # legend
     then
-    gnuplot="$gnuplot ${CONFIG["l"]}; "
+    gnuplot="$gnuplot set key ${CONFIG["l"]}; "
   fi
 
 #-------------------------------------------------------------------------------
