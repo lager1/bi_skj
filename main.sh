@@ -150,21 +150,21 @@ function readParams()
 
       S) # SPEED
 		 [ -z "$OPTARG" ] && error "the value of the switch -S was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*$ ]] && {	# non-numeric value, should be int/float, must not be zero
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -S"; }
          SWITCHES[$((switches_idx++))]="S"	# save the processed switch
          CONFIG["S"]="$OPTARG";;            # save the argument of the switch
 
       T) # TIME
 		 [ -z "$OPTARG" ] && error "the value of the switch -T was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*$ ]] && {	# non-numeric value, should be int/float, must not be zero
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -T"; }
          SWITCHES[$((switches_idx++))]="T"	# save the processed switch
          CONFIG["T"]="$OPTARG";;            # save the argument of the switch
 
       F) # FPS
 		 [ -z "$OPTARG" ] && error "the value of the switch -F was not provided"
-		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*$ ]] && {	# non-numeric value, should be int/float, must not be zero
+		 ! [[ "$OPTARG" =~ ^\+?[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$OPTARG" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$OPTARG" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
 		   error "wrong argument of the switch -F"; }
          SWITCHES[$((switches_idx++))]="F"	# save the processed switch
          CONFIG["F"]="$OPTARG";;            # save the argument of the switch
@@ -443,7 +443,9 @@ function readConfig()
     ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
     [[ "$ret" == "" ]] && error "value of the Speed directive was not provided in the configuration file \"$1\""
-    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]*\.[1-9]([0-9])*$ ]] && {  # none of acceptable values, must not be zero
+
+
+    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$ret" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
       error "wrong argument of the Speed directive in configuration file \"$1\""; }
     
     CONFIG["S"]="$ret"
@@ -458,7 +460,7 @@ function readConfig()
     ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
     
     [[ "$ret" == "" ]] && error "value of the Time directive was not provided in the configuration file \"$1\""
-    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]*\.[1-9]([0-9])*$ ]] && {  # none of acceptable values, must not be zero
+    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$ret" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
       error "wrong argument of the Time directive in configuration file \"$1\""; }
 
     CONFIG["T"]="$ret"
@@ -473,7 +475,7 @@ function readConfig()
     ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
     [[ "$ret" == "" ]] && error "value of the FPS directive was not provided in the configuration file \"$1\""
-    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]*\.[1-9]([0-9])*$ ]] && {  # none of acceptable values, must not be zero
+    ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$ret" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
       error "wrong argument of the FPS directive in configuration file \"$1\""; }
 
     CONFIG["F"]="$ret"
