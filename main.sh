@@ -360,7 +360,10 @@ function readConfig()
   then
    
     ret=$(sed -n '/^[^#]*TimeFormat /Ip' "$1" | sed -n 's/^.*TimeFormat/TimeFormat/I; s/TimeFormat[[:space:]]*/TimeFormat /; s/TimeFormat //; s/[[:space:]]*#.*$//; $p')
-    [[ "$ret" == "" ]] && error "value of the directive TimeFormat was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+       line="$(awk 'BEGIN{IGNORECASE=1} /TimeFormat / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+       cont="$(awk 'BEGIN{IGNORECASE=1} /TimeFormat / { content[last] = $0 } END { print content[last] } ' "$1")";
+       error "value of the TimeFormat directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
     
     [[ "$ret" =~ %[dHjklmMSuUVwWyY] ]] || warning "make sure you have entered correct Timeformat, it does not contain any control sequences"
 
@@ -375,14 +378,19 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Xmax /Ip' "$1" | sed -n 's/^.*Xmax/Xmax/I; s/Xmax[[:space:]]*/Xmax /; s/Xmax //; s/[[:space:]]*#.*$//; $p')
 
-    [[ "$ret" == "" ]] && error "value of the Xmax directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+       line="$(awk 'BEGIN{IGNORECASE=1} /Xmax / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+       cont="$(awk 'BEGIN{IGNORECASE=1} /Xmax / { content[last] = $0 } END { print content[last] } ' "$1")";
+       error "value of the Xmax directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
 
     if ! [[ "$ret" == "auto" || "$ret" == "max" ]] # none of acceptable text values
     then
       # there may be specific value, needs to be checked
       # first check if the format of the argument is correct, then check by date
 
-      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/\]/\\]/g; s/\\/\\\\/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" does not match"
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/\]/\\]/g; s/\\/\\\\/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || { 
+        line="$(awk 'BEGIN{IGNORECASE=1} /Xmax / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+        error "provided timestamp format and argument of the Xmax directive in the configuration file \"$1\" on line $line does not match"; }
 
     fi
     
@@ -397,13 +405,18 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Xmin /Ip' "$1" | sed -n 's/^.*Xmin/Xmin/I; s/Xmin[[:space:]]*/Xmin /; s/Xmin //; s/[[:space:]]*#.*$//; $p')
 
-    [[ "$ret" == "" ]] && error "value of the Xmin directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && { 
+      line="$(awk 'BEGIN{IGNORECASE=1} /Xmin / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Xmin / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the Xmin directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
 
     if ! [[ "$ret" == "auto" || "$ret" == "min" ]] # none of acceptable text values
     then
       # there may be specific value, needs to be checked
       # first check if the format of the argument is correct, then check by date
-      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" does not match"
+      [[ "$ret" =~ ^$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')$ ]] || { 
+        line="$(awk 'BEGIN{IGNORECASE=1} /Xmin / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+        error "provided timestamp format and argument of the Xmin directive in the configuration file \"$1\" on line $line does not match"; }
 
     fi
     
@@ -419,9 +432,16 @@ function readConfig()
     
     ret=$(sed -n '/^[^#]*Ymax /Ip' "$1" | sed -n 's/^.*Ymax/Ymax/I; s/Ymax[[:space:]]*/Ymax /; s/Ymax //; s/[[:space:]]*#.*$//; $p')
 
-    [[ "$ret" == "" ]] && error "value of the Ymax directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /Ymax / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Ymax / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the Ymax directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
+
     ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "max" ]] && {  # none of acceptable values
-      error "wrong argument of the Ymax directive in configuration file \"$1\""; }
+
+      line="$(awk 'BEGIN{IGNORECASE=1} /Ymax / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Ymax / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "wrong argument of the Ymax directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
 
     CONFIG["Y"]="$ret"
     ((directives++))
@@ -435,9 +455,15 @@ function readConfig()
 
     ret=$(sed -n '/^[^#]*Ymin /Ip' "$1" | sed -n 's/^.*Ymin/Ymin/I; s/Ymin[[:space:]]*/Ymin /; s/Ymin //; s/[[:space:]]*#.*$//; $p')
 
-    [[ "$ret" == "" ]] && error "value of the Ymin directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /Ymin / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Ymin / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the Ymin directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
+
     ! [[ "$ret" =~ ^-?[0-9]+$ || "$ret" =~ ^-?[0-9]+\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[0-9]+$ || "$ret" == "auto" || "$ret" == "min" ]] && {  # none of acceptable values
-      error "wrong argument of the Ymin directive in configuration file \"$1\""; }
+      line="$(awk 'BEGIN{IGNORECASE=1} /Ymin / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Ymin / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "wrong argument of the Ymin directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
     
     CONFIG["y"]="$ret"
     ((directives++))
@@ -450,11 +476,15 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Speed /Ip' "$1" | sed -n 's/^.*Speed/Speed/I; s/Speed[[:space:]]*/Speed /; s/Speed //; s/[[:space:]]*#.*$//; $p')
 
-    [[ "$ret" == "" ]] && error "value of the Speed directive was not provided in the configuration file \"$1\""
-
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /Speed / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Speed / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the Speed directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
 
     ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$ret" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
-      error "wrong argument of the Speed directive in configuration file \"$1\""; }
+      line="$(awk 'BEGIN{IGNORECASE=1} /Speed / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Speed / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "wrong argument of the Speed directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
     
     CONFIG["S"]="$ret"
     ((directives++))
@@ -467,9 +497,15 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Time /Ip' "$1" | sed -n 's/^.*Time/Time/I; s/Time[[:space:]]*/Time /; s/Time //; s/[[:space:]]*#.*$//; $p')
     
-    [[ "$ret" == "" ]] && error "value of the Time directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /Time / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Time / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the Time directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
+
     ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$ret" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
-      error "wrong argument of the Time directive in configuration file \"$1\""; }
+      line="$(awk 'BEGIN{IGNORECASE=1} /Time / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Time / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "wrong argument of the Time directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
 
     CONFIG["T"]="$ret"
     ((directives++))
@@ -482,9 +518,15 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*FPS /Ip' "$1" | sed -n 's/^.*FPS/FPS/I; s/FPS[[:space:]]*/FPS /; s/FPS //; s/[[:space:]]*#.*$//; $p')
   
-    [[ "$ret" == "" ]] && error "value of the FPS directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /FPS / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /FPS / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the FPS directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
+
     ! [[ "$ret" =~ ^\+?[1-9]([0-9])*$ || "$ret" =~ ^\+?[1-9]([0-9])*\.[0-9]+$ || "$ret" =~ ^\+?[0-9]+\.[1-9]([0-9])*$ || "$ret" =~ ^\+?[0-9]+\.[0-9]*[1-9]$ ]] && {	# non-numeric value, should be int/float, must not be zero
-      error "wrong argument of the FPS directive in configuration file \"$1\""; }
+      line="$(awk 'BEGIN{IGNORECASE=1} /FPS / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /FPS / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "wrong argument of the FPS directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
 
     CONFIG["F"]="$ret"
     ((directives++))
@@ -497,13 +539,19 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*CriticalValue /Ip' "$1" | sed -n 's/^.*CriticalValue/CriticalValue/I; s/CriticalValue[[:space:]]*/CriticalValue /; s/CriticalValue //; s/[[:space:]]*#.*$//; $p')
   
-    [[ "$ret" == "" ]] && error "value of the CriticalValue directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /CriticalValue / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /CriticalValue / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the CriticalValue directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
     
     for i in $(echo "$ret" | sed 's/:x=/ x=/; s/:y=/ y=/')
     do
 
       # check both x and y, x values are in format defined by Timeformat
-      ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')"$ ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
+      ! [[ "$i" =~ ^y=\+?[0-9]+$  || "$i" =~ ^y=\+?[0-9]+\.[0-9]+$ || "$i" =~ ^y=-?[0-9]+$ || "$i" =~ ^y=-?[0-9]+\.[0-9]+$ || "$i" =~ ^x="$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')"$ ]] && {
+        line="$(awk 'BEGIN{IGNORECASE=1} /CriticalValue / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+        cont="$(awk 'BEGIN{IGNORECASE=1} /CriticalValue / { content[last] = $0 } END { print content[last] } ' "$1")";
+        error "wrong argument of the CriticalValue directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
 
       CRITICALVALUES[$((${#CRITICALVALUES[@]} + 1))]="$i" # save the argument of the directive
       
@@ -526,7 +574,11 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Legend /Ip' "$1" | sed -n 's/^.*Legend/Legend/I; s/Legend[[:space:]]*/Legend /; s/Legend //; s/[[:space:]]*#.*$//; $p')
   
-    [[ "$ret" == "" ]] && error "value of the Legend directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /Legend / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Legend / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the Legend directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
+
     CONFIG["l"]="$ret"
     ((directives++))
     verbose "value of the directive Legend: $ret"
@@ -538,7 +590,10 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*GnuplotParams /Ip' "$1" | sed -n 's/^.*GnuplotParams/GnuplotParams/I; s/GnuplotParams[[:space:]]*/GnuplotParams /; s/GnuplotParams //; s/[[:space:]]*#.*$//; $p')
 
-    [[ "$ret" == "" ]] && error "value of the GnuplotParams directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /GnuplotParams / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /GnuplotParams / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the GnuplotParams directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
     GNUPLOTPARAMS[$((${#GNUPLOTPARAMS[@]} + 1))]="$ret" # save the argument of the directive
 
     if [[ "${CONFIG["g"]}" == "" ]]
@@ -558,12 +613,17 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*EffectParams /Ip' "$1" | sed -n 's/^.*EffectParams/EffectParams/I; s/EffectParams[[:space:]]*/EffectParams /; s/EffectParams //; s/[[:space:]]*#.*$//; $p')
 		   
-    [[ "$ret" == "" ]] && error "value of the EffectParams directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /EffectParams / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /EffectParams / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the EffectParams directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
     
     for i in $(echo "$ret" | tr ":" " ")
     do
-      ! [[ "$i" =~ ^bounce$ || "$i" =~ ^factor=[5-9]$ ]] && # check the argument value
-      error "wrong argument of the EffectParams directive in configuration file \"$1\""
+      ! [[ "$i" =~ ^bounce$ || "$i" =~ ^factor=[5-9]$ ]] && { # check the argument value
+        line="$(awk 'BEGIN{IGNORECASE=1} /EffectParams / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+        cont="$(awk 'BEGIN{IGNORECASE=1} /EffectParams / { content[last] = $0 } END { print content[last] } ' "$1")";
+        error "wrong argument of the EffectParams directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
 
       EFFECTPARAMS[$((${#EFFECTPARAMS[@]} + 1))]="$ret" # save the argument of the directive
       [[ "$i" =~ ^factor=[5-9]$ ]] && FACTOR="$(echo "$i" | sed 's/factor=//')"
@@ -585,7 +645,10 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*Name /Ip' "$1" | sed -n 's/^.*Name/Name/I; s/Name[[:space:]]*/Name /; s/Name //; s/[[:space:]]*#.*$//; $p')
   
-    [[ "$ret" == "" ]] && error "value of the Name directive was not provided in the configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /Name / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /Name / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the Name directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
     CONFIG["n"]="$ret"
     ((directives++))
     verbose "value of the directive Name: $ret"
@@ -597,8 +660,16 @@ function readConfig()
   then
     ret=$(sed -n '/^[^#]*IgnoreErrors /Ip' "$1" | sed -n 's/^.*IgnoreErrors/IgnoreErrors/I; s/IgnoreErrors[[:space:]]*/IgnoreErrors /; s/IgnoreErrors //; s/[[:space:]]*#.*$//; $p')
 
-    [[ "$ret" == "" ]] && error "value of the IgnoreErrors directive was not provided in the configuration file \"$1\""
-    ! [[ "$ret" == "true" || "$ret" == "false" ]] && error "wrong argument of the CriticalValue directive in configuration file \"$1\""
+    [[ "$ret" == "" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /IgnoreErrors / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /IgnoreErrors / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "value of the IgnoreErrors directive on line $line was not provided in the configuration file \"$1\"\nline with error: $cont"; }
+
+    ! [[ "$ret" == "true" || "$ret" == "false" ]] && {
+      line="$(awk 'BEGIN{IGNORECASE=1} /IgnoreErrors / { lines[last] = NR ; content[last] = $0 } END { print lines[last] } ' "$1")";
+      cont="$(awk 'BEGIN{IGNORECASE=1} /IgnoreErrors / { content[last] = $0 } END { print content[last] } ' "$1")";
+      error "wrong argument of the IgnoreErrors directive on line $line in configuration file \"$1\"\nline with error: $cont"; }
+
     CONFIG["E"]="$ret"
     ((directives++))
     verbose "value of the directive Name: $ret"
@@ -939,19 +1010,6 @@ function createAnim()
   done
 
 #-------------------------------------------------------------------------------
-
-  #echo "=============="
-  #echo "$columns"
-  #echo "=============="
-  #echo "$gnuplot"
-  #echo "=============="
-  #echo "$output"
-  #echo "=============="
-  #echo "$MULTIPLOT "
-  #echo "=============="
-  #echo "$fps"
-  #echo "=============="
-  #return
 
   # start at the first multiple, end at the records
   local j=0
