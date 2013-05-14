@@ -683,6 +683,7 @@ function createAnim()
   local more            # more plots
   local ef_gnuplot      # gnuplot with effects
   local output          # final gnuplot output
+  local ef_output          # final gnuplot output with effects
 
   while [[ -d "$directory" ]]
   do
@@ -795,6 +796,11 @@ function createAnim()
     gnuplot="$gnuplot set yrange[$YMIN:${CONFIG["Y"]}]; "
   fi
 
+  if [[ "${CONFIG["Y"]}" == "max" && "${CONFIG["y"]}" == "auto" ]]    # max + auto
+  then
+    gnuplot="$gnuplot set yrange[:$YMAX]; "
+  fi
+
 #-------------------------------------------------------------------------------
   # setting X values
 
@@ -861,14 +867,38 @@ function createAnim()
     columns=$((columns - 2))
     for((k = 0; k <= $columns; k++))
     do
-      using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines smooth unique; "
+      # red, green, blue, yellow, black
+      if ! [[ "$using" =~ red ]]
+      then
+        using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines linecolor rgb \"red\" smooth unique; "
+
+      elif ! [[ "$using" =~ green ]]
+      then
+        using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines linecolor rgb \"green\" smooth unique; "
+
+      elif ! [[ "$using" =~ blue ]]
+      then
+        using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines linecolor rgb \"blue\" smooth unique; "
+
+      elif ! [[ "$using" =~ yellow ]]
+      then
+        using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines linecolor rgb \"yellow\" smooth unique; "
+
+      elif ! [[ "$using" =~ black ]]
+      then
+        using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines linecolor rgb \"black\" smooth unique; "
+
+      else
+        using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines smooth unique; "
+
+      fi
     done
 
     if [[ "$plot" != "" ]]
     then
-      output="$gnuplot; plot $plot; $using ; unset multiplot;"
+      output="$gnuplot; plot $plot; $using"
     else
-      output="$gnuplot; $using unset multiplot;"
+      output="$gnuplot; $using"
     fi
 
   done
@@ -881,10 +911,15 @@ function createAnim()
 
 # co kdyz bude zadan pouze jeden prepinac, ktery urcuje animaci ?
 
+# efekt funguje pouze s ymax rovno max
 
+
+  #echo "$columns"
+  #echo "=============="
   #echo "$gnuplot"
   #echo "=============="
   #echo "$output"
+  #echo "=============="
   #echo "$MULTIPLOT "
   #return
 
@@ -894,31 +929,18 @@ function createAnim()
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
 
-    #if [[ "${EFFECTPARAMS[@]}" =~ bounce && "$((j % 10))" == "$FACTOR" ]] # add effect
-    #then
-    #  ef_gnuplot="$gnuplot; unset yrange; set yrange[$YMIN:$((YMAX + 100))]"
+    if [[ "${EFFECTPARAMS[@]}" =~ bounce && "$((j % 10))" == "$FACTOR" ]] # add effect
+    then
+      ef_output="unset yrange; set yrange[$YMIN:$((YMAX * 2))]; $output;"
 
-    #else
-    #  ef_gnuplot="$gnuplot"
-    #fi
+    else
+      ef_output="$output"
+    fi
 
-    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
-
-    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot
-
-    #echo "$output set output '$directory/$(printf %0${#records}d $j).png';" | sed 's/head -[1-9]+/head -'$i'/'
-    #echo "$output"
-    #echo "============================"
-    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -/head -'$i'/'
-    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -/head -150/'
-    #sleep 2
-    echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -[1-9][0-9]*/head -'$i'/' >> vystup
-    echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -[1-9][0-9]*/head -'$i'/' | gnuplot
-    #return
-
-    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot
-    #echo "$output "
-
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_output" | sed 's/head -[1-9][0-9]*/head -'$i'/g' >> vystup
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -[1-9][0-9]*/head -'$i'/g' | gnuplot &>/dev/null
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -[1-9][0-9]*/head -'$i'/g' | gnuplot
+    echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_output" | sed 's/head -[1-9][0-9]*/head -'$i'/g' | gnuplot
 
     ((j++))
   done
@@ -953,8 +975,8 @@ function cleanup()
 #-------------------------------------------------------------------------------
 # signal reactions
 #-------------------------------------------------------------------------------
-trap cleanup EXIT
-trap 'trap - EXIT; cleanup' INT TERM
+#trap cleanup EXIT
+#trap 'trap - EXIT; cleanup' INT TERM
 #-------------------------------------------------------------------------------
 # main
 #-------------------------------------------------------------------------------
