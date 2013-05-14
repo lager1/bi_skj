@@ -674,7 +674,7 @@ function createAnim()
   local gnuplot         # commands for gnuplot
   local plot            # data to plot
   local len             # length of individual data files
-  local using           # how many columns
+  local using=""        # how many columns
   local columns         # columns of data file
   local YMAX            # Ymax
   local YMIN            # Ymin
@@ -682,6 +682,7 @@ function createAnim()
   local time_len        # timestamp length
   local more            # more plots
   local ef_gnuplot      # gnuplot with effects
+  local output          # final gnuplot output
 
   while [[ -d "$directory" ]]
   do
@@ -849,36 +850,74 @@ function createAnim()
     CONFIG["S"]="$(echo "($records / ${CONFIG["F"]}) / ${CONFIG["T"]}")"
   fi
 
-  columns=$((columns - 2))
-  for((k = 1; k <= $columns; k++))
+#-------------------------------------------------------------------------------
+
+  # just generate output for gnuplot
+  local j=0
+
+  for((i = ${CONFIG["S"]}; i <= ${CONFIG["S"]}; i += ${CONFIG["S"]}))
   do
-    using="using 1:$((k + 2)) with lines smooth unique; "
+
+    columns=$((columns - 2))
+    for((k = 0; k <= $columns; k++))
+    do
+      using="$using plot '<head -$i $directory/data' using 1:$((k + 2)) with lines smooth unique; "
+    done
+
+    if [[ "$plot" != "" ]]
+    then
+      output="$gnuplot; plot $plot; $using ; unset multiplot;"
+    else
+      output="$gnuplot; $using unset multiplot;"
+    fi
+
   done
 
-
-  echo "$gnuplot"
-  exit 0
-
 #-------------------------------------------------------------------------------
+
+# potencialni efekt -> reverse
+# 
+#    echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/tail -[1-9][0-9]*/tail -'$i'/' | gnuplot
+
+# co kdyz bude zadan pouze jeden prepinac, ktery urcuje animaci ?
+
+
+  #echo "$gnuplot"
+  #echo "=============="
+  #echo "$output"
+  #echo "$MULTIPLOT "
+  #return
+
 
   # start at the first multiple, end at the records
   local j=0
   for((i = ${CONFIG["S"]}; i <= $records; i += ${CONFIG["S"]}))
   do
-    more="'<head -$i $directory/data' using 1:2 with lines smooth unique; "
 
-    if [[ "${EFFECTPARAMS[@]}" =~ bounce && "$((j % 10))" == "$FACTOR" ]] # add effect
-    then
-      ef_gnuplot="$gnuplot; unset yrange; set yrange[$YMIN:$((YMAX + 100))]"
+    #if [[ "${EFFECTPARAMS[@]}" =~ bounce && "$((j % 10))" == "$FACTOR" ]] # add effect
+    #then
+    #  ef_gnuplot="$gnuplot; unset yrange; set yrange[$YMIN:$((YMAX + 100))]"
 
-    else
-      ef_gnuplot="$gnuplot"
-    fi
+    #else
+    #  ef_gnuplot="$gnuplot"
+    #fi
 
     #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot &>/dev/null
 
     #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot
-    echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot
+
+    #echo "$output set output '$directory/$(printf %0${#records}d $j).png';" | sed 's/head -[1-9]+/head -'$i'/'
+    #echo "$output"
+    #echo "============================"
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -/head -'$i'/'
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -/head -150/'
+    #sleep 2
+    echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -[1-9][0-9]*/head -'$i'/' >> vystup
+    echo "set output '$directory/$(printf %0${#records}d $j).png'; $output" | sed 's/head -[1-9][0-9]*/head -'$i'/' | gnuplot
+    #return
+
+    #echo "set output '$directory/$(printf %0${#records}d $j).png'; $ef_gnuplot; plot $plot $more; plot '<head -$i $directory/data' $using; unset multiplot;" | gnuplot
+    #echo "$output "
 
 
     ((j++))
@@ -905,7 +944,7 @@ function play()
 #-------------------------------------------------------------------------------
 function cleanup()
 {
-  if [[ -d "$CONFIG["n"]" ]]
+  if [[ -d "${CONFIG["n"]}" ]]
   then
     find "${CONFIG["n"]}" -maxdepth 1 -name '*.png' -exec rm {} \;
     find "${CONFIG["n"]}" -maxdepth 1 -name 'data' -exec rm {} \;
