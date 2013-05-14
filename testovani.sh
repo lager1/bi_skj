@@ -96,7 +96,7 @@ function switchTest2()
     [[ "$?" == "0" ]] && FAIL=1
 
     echo "testing $1 -t \"%H:%M:%S\" -$2 \"24:00:00\""
-    eval "$1 -t \"%H:%M:%S\" -$2 \"25:00:00\"" 
+    eval "$1 -t \"%H:%M:%S\" -$2 \"24:00:00\"" 
     [[ "$?" == "0" ]] && FAIL=1
 
     echo "testing $1 -t \"%H:%M:%S\" -$2 \"12:61:00\""
@@ -122,7 +122,7 @@ function switchTest2()
     [[ "$?" == "0" ]] && FAIL=1
 
     echo "testing $1 -t \"%H:%M:%S\" -$2 \"24:00:00\"" &>/dev/null
-    eval "$1 -t \"%H:%M:%S\" -$2 \"25:00:00\"" &>/dev/null
+    eval "$1 -t \"%H:%M:%S\" -$2 \"24:00:00\"" &>/dev/null
     [[ "$?" == "0" ]] && FAIL=1
 
     echo "testing $1 -t \"%H:%M:%S\" -$2 \"12:61:00\"" &>/dev/null
