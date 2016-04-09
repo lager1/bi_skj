@@ -1,0 +1,140 @@
+==== Documentation for semestrer work from subjekt BI-SKJ, FIT CVUT, 2013, summer semester ====
+
+=== User documentation ===
+
+This script generates animation based on provided data (saved in file/files or on the web). Output files will be saved in a directory according to the switch -n (otherwise name of the script). If the directory already exists, then the directory name will be ending with _i, where i=max(0,i)+1. Additionaly script behavior can be affected by switches or by configuration file.Its possible to use both options together, if switch and corresponding directive are used, then switch is preffered.
+
+
+=== Programmer's documentation ===
+
+first, the script reads all switches and their values provided on the command line and checks the values of the switches. As a next step the script shifts all arguments provided on the command line, so it can process it. As a next step the script tries to read the configuration file. Then the data files and Values of important variables are checked. And finally in the end the directory according to -n is made and the final animation is created. 
+
+During the script runtime, the function verbose prints information about state of the script, if the switch -v was provided. At the end of the script, the animaion can be played, if the switch -p was provided. No data sorting is needed, gnuplot, which is used to generate frames, can handle it by itself. Script has built-in signal reaction, which include signals INT, TERM and EXIT.
+
+== Description of used functions ==
+
+
+  function warning()
+  #-------------------------------------------------------------------------------
+  # function to print warning message
+  # parameters:
+  #   function takes arbitrary number of arguments
+  # all of the parameters ale printed to the standart output
+  #-------------------------------------------------------------------------------
+
+  function usage()
+  #-------------------------------------------------------------------------------
+  # function to print how to use this script
+  # parameters:
+  #   function takes no parameters
+  #-------------------------------------------------------------------------------
+  
+
+  function verbose()
+  #-------------------------------------------------------------------------------
+  # function for reporting information about script progress
+  # parameters:
+  #   function takes arbitrary number of arguments
+  # all of the parameters ale printed to the standart output
+  #-------------------------------------------------------------------------------
+  
+
+  function error()
+  #-------------------------------------------------------------------------------
+  # function for error reporting
+  # parameters:
+  #   function takes arbitrary number of arguments
+  # all of the parameters ale printed to the standart error output
+  # fuction subsequently exits the whole script with exit 1
+  #-------------------------------------------------------------------------------
+  
+
+  function readParams()
+  #-------------------------------------------------------------------------------
+  # function for reading and evaluation of parameters
+  # parameters:
+  #   1) "$@" - we process all of the switches passed to the script
+  # result of the processing is saved in the global variables
+  # when an error occurs it is sent to the error function
+  #-------------------------------------------------------------------------------
+  
+
+  function checkFiles()
+  # function for checking data files
+  #	1) "$@" - all remaining arguments, which vere provided on execution - data files
+  # function checks if the files exist and if they are readable
+  # result of the processing is saved in the global variables
+  # if the files are on the web, they are downloaded to temporary files
+  # checks if the files are continuous
+  #-------------------------------------------------------------------------------
+
+
+  function readConfig()
+  #-------------------------------------------------------------------------------
+  # fucntion for reading the configuration file
+  # parameters:
+  #   1) the configuration file
+  # the result of the processing is saved in the global variables
+  # when an error occurs it is sent to the error function
+  #-------------------------------------------------------------------------------
+
+
+  function checkValues()
+  #-------------------------------------------------------------------------------
+  # function for checking values of the directives/switches
+  # parameters:
+  #   function takes no parameters, it works with global variables
+  # function checks value of Xmax, Xmin, Ymax, Ymin and name of the output directory
+  # furthermore function checks if the values are in the data files
+  #-------------------------------------------------------------------------------
+  
+
+  function createAnim()
+  #-------------------------------------------------------------------------------
+  # function for creating animation
+  # parameters: 
+  #   function takes no parameters, it works with global variables
+  #-------------------------------------------------------------------------------
+
+
+  function play()
+  #-------------------------------------------------------------------------------
+  # function to play created animation
+  # parameters:
+  #   1) file to play
+  #-------------------------------------------------------------------------------
+
+
+  function cleanup()
+  #-------------------------------------------------------------------------------
+  # function to remove all the created frames
+  # parameters:
+  #   function takes no parameters
+  #-------------------------------------------------------------------------------
+
+
+
+== Description of defined switches and directives ==
+
+^ Switch      ^ Directive       ^ description     ^ Value type         ^ Default Value         ^
+|-t	| TimeFormat	 | timestamp format	| strftime(3c)	        | [%Y-%m-%d %H:%M:%S] |
+|-X	| Xmax	         | x-max	        | „auto“,“max“,value	| max                 |
+|-x	| Xmin	         | x-min	        | „auto“,“min“,value	| min                 |
+|-Y	| Ymax	         | y-max	        | „auto“,“max“,value	| auto                |
+|-y	| Ymin	         | y-min	        | „auto“,“min“,value	| auto                |
+|-S	| Speed	         | speed	        | int/float	        | 1 record/frame      |
+|-T	| Time	         | time (duration)	| int/float	        | n/a                 |
+|-F	| FPS	         | fps	                | int/float	        | 25                  |
+|-c	| CriticalValue	 | critical values*	| [xy]=int/float	| n/a                 |
+|-l	| Legend	 | legend	        | text	                | n/a                 |
+|-g	| GnuplotParams	 | gnuplot params*	| parameter	        | n/a                 |
+|-e	| EffectParams	 | effect params*	| param=val:param=val	| n/a                 |
+|-f	| n/a	         | config file	        | pathname	        | n/a                 |
+|-n	| Name	         | name	                | text	                | n/a                 |
+|-E	| IgnoreErrors	 | don't ignore errors	| n/a, true/false	| true                |
+|-v	| n/a	         | display verbose info	| n/a, true/false	| true                |
+|-p	| n/a	         | play the animation	| n/a, true/false	| true                |
+
+
+Archvive with the main script, testing script and possible data files {{ semestralka.tar.gz }} 
+
