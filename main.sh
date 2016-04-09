@@ -259,7 +259,7 @@ function readParams()
          CONFIG["p"]="1"
          PLAY=1;;                           # set the value of global variable
 
-     \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v"; 	# undefined switch
+     \?) echo "accepted switches: t, X, x, Y, y, S, T, F, c, l, g, e, f, n, v, p"; 	# undefined switch
 		 exit 2;;
    esac
   done
@@ -321,7 +321,7 @@ function checkFiles()
 
     while read line
     do
-      [[ "$( echo "$line" | cut -d " " -f1-$((words -1)) 2>/dev/null | tr "\n" " " | sed 's/ $//')" =~ ^$timeregex$ ]] || error "provided TimeFormat and timestamp in data file on line $l \"${DATA[0]}\" does not match"
+      [[ "$( echo "$line" | cut -d " " -f1-$((words -1)) 2>/dev/null | tr "\n" " " | sed 's/ $//')" =~ ^$timeregex$ ]] || error "provided TimeFormat and timestamp in data file on line $l \"${DATA[0]}\" does not match\nline which does not match: $line"
       ((l++))
 
     done < "${DATA[0]}"
@@ -343,9 +343,8 @@ function checkFiles()
         timeregex="$(echo "${CONFIG["t"]}" | sed 's/\\/\\\\/g; s/\./\\./g; s/\[/\\[/g; s/\]/\\]/g; s/%d/(0\[1-9\]|\[1-2\]\[0-9\]|3\[0-1\])/g; s/%H/(\[0-1\]\[0-9\]|2\[0-3\])/g; s/%I/(0\[1-9\]|1\[0-2\])/g; s/%j/(00\[1-9\]|0\[0-9\]\[0-9\]|\[1-2\]\[0-9\]\[0-9\]|3\[0-5\]\[0-9\]|36\[0-6\])/g; s/%k/(\[0-9\]|1\[0-9\]|2\[0-3\])/g; s/%l/(\[0-9\]|1\[0-2\])/g; s/%m/(0\[1-9\]|1\[0-2\])/g; s/%M/(\[0-5\]\[0-9\]|60)/g; s/%S/(\[0-5\]\[0-9\]|60)/g; s/%u/\[1-7\]/g; s/%U/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%V/(0\[1-9\]|\[1-4\]\[0-9\]|5\[0-3\])/g; s/%w/\[0-6\]/g; s/%W/(\[0-4\]\[0-9\]|5\[0-3\])/g; s/%y/\[0-9\]\[0-9\]/g; s/%Y/(\[0-1\]\[0-9\]\[0-9\]\[0-9\]|200\[0-9\]|201\[0-3\])/g;')"
         while read line
         do
-          [[ "$( echo "$line" | cut -d " " -f1-$((words -1)) 2>/dev/null | tr "\n" " " | sed 's/ $//')" =~ ^$timeregex$ ]] || error "provided TimeFormat and timestamp in data file on line $l \"$i\" does not match"
+          [[ "$( echo "$line" | cut -d " " -f1-$((words -1)) 2>/dev/null | tr "\n" " " | sed 's/ $//')" =~ ^$timeregex$ ]] || error "provided TimeFormat and timestamp in data file on line $l \"$i\" does not match\nline, which does not match: $line"
           ((l++))
-
         done < "$i"
 
       fi
@@ -1074,8 +1073,8 @@ function cleanup()
 {
   if [[ -d "${CONFIG["n"]}" ]]
   then
-    find "${CONFIG["n"]}" -maxdepth 1 -name '*.png' -exec rm {} \;
-    find "${CONFIG["n"]}" -maxdepth 1 -name 'data' -exec rm {} \;
+    find "${CONFIG["n"]}" -maxdepth 1 -name '*.png' -exec rm {} \; 2>/dev/null
+    find "${CONFIG["n"]}" -maxdepth 1 -name 'data' -exec rm {} \; 2>/dev/null
   fi
 }
 #-------------------------------------------------------------------------------
